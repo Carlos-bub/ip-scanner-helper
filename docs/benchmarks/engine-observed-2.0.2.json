@@ -1,0 +1,3635 @@
+{
+  "generated_at": "2026-10-26T12:02:43.043188+00:00",
+  "python": "3.14.6 (tags/v3.14.6:c63aec6, Jun 10 2026, 10:26:10) [MSC v.1944 64 bit (AMD64)]",
+  "probe_metrics_enabled": true,
+  "scope": "Real scanner/coordinator with simulated collectors; no network packets",
+  "memory_metric": "tracemalloc Python allocations, not process RSS",
+  "fixture_dns_delay_ms": 7,
+  "rows": [
+    {
+      "scenario": "unresponsive",
+      "targets": 32,
+      "workers": 32,
+      "duration_s": 0.018682,
+      "cpu_process_s": 0.015625,
+      "first_result_s": null,
+      "first_complete_s": null,
+      "python_peak_allocations_mib": 0.12,
+      "completed": 32,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 0,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "metrics": {
+        "duration_s": 0.01661839999997028,
+        "cpu_process_s": 0.015625,
+        "first_result_s": null,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.001135299999077688
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008039999975153478
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009089999985008035
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008077000038611004
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "unresponsive",
+      "targets": 254,
+      "workers": 32,
+      "duration_s": 0.116235,
+      "cpu_process_s": 0.125,
+      "first_result_s": null,
+      "first_complete_s": null,
+      "python_peak_allocations_mib": 0.317,
+      "completed": 254,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 0,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "metrics": {
+        "duration_s": 0.11278719999972964,
+        "cpu_process_s": 0.125,
+        "first_result_s": null,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.009076499994989717
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006539300001350057
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00729499999579275
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.007097400003658549
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "unresponsive",
+      "targets": 1024,
+      "workers": 32,
+      "duration_s": 0.428031,
+      "cpu_process_s": 0.5,
+      "first_result_s": null,
+      "first_complete_s": null,
+      "python_peak_allocations_mib": 0.45,
+      "completed": 1024,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 0,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "metrics": {
+        "duration_s": 0.41747249999934866,
+        "cpu_process_s": 0.484375,
+        "first_result_s": null,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03291709997665748
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.025025200009622495
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.028792900012376776
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.028165999998236657
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "unresponsive",
+      "targets": 4096,
+      "workers": 32,
+      "duration_s": 1.587348,
+      "cpu_process_s": 1.578125,
+      "first_result_s": null,
+      "first_complete_s": null,
+      "python_peak_allocations_mib": 0.629,
+      "completed": 4096,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 0,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "metrics": {
+        "duration_s": 1.5502581000000646,
+        "cpu_process_s": 1.546875,
+        "first_result_s": null,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.18578130005971616
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.10846909998417686
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.28191139998125436
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.2204719999590452
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "mixed",
+      "targets": 32,
+      "workers": 32,
+      "duration_s": 0.030276,
+      "cpu_process_s": 0.03125,
+      "first_result_s": 0.003852,
+      "first_complete_s": 0.02863,
+      "python_peak_allocations_mib": 0.13,
+      "completed": 32,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 24,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "cfa106cecd3e0595c8cc8a6baffddd78269423c8a018e0baf710c7bb236ffe77",
+      "metrics": {
+        "duration_s": 0.029023699999925157,
+        "cpu_process_s": 0.03125,
+        "first_result_s": 0.0014001999998072279,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 8,
+            "no_result": 24,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0012897000042357831
+          },
+          "icmp": {
+            "result": 8,
+            "no_result": 24,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.000844799998048984
+          },
+          "tcp": {
+            "result": 16,
+            "no_result": 16,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009740000023157336
+          },
+          "snmp": {
+            "result": 8,
+            "no_result": 24,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0010636000015438185
+          },
+          "dns_ptr": {
+            "result": 8,
+            "no_result": 16,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 8,
+            "duration_s": 0.0007359999981417786
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 16,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 16,
+            "duration_s": 0.00042940000003000023
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 16,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 16,
+            "duration_s": 0.0004050999987157411
+          },
+          "http": {
+            "result": 16,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 16,
+            "duration_s": 0.0004544000012174365
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 24,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 8,
+            "duration_s": 0.0006080000011934317
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 16,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 16,
+            "duration_s": 0.0003933000007236842
+          },
+          "tls": {
+            "result": 16,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 16,
+            "duration_s": 0.0004933999989589211
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 16,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 16,
+            "duration_s": 0.00036469999849941814
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "mixed",
+      "targets": 254,
+      "workers": 32,
+      "duration_s": 0.205204,
+      "cpu_process_s": 0.25,
+      "first_result_s": 0.004472,
+      "first_complete_s": 0.053448,
+      "python_peak_allocations_mib": 0.461,
+      "completed": 254,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 191,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "92b4edeea036e2db834f6d1ba242a04473a6db8c29faad5cf15bd6e57dd64411",
+      "metrics": {
+        "duration_s": 0.20230349999928876,
+        "cpu_process_s": 0.234375,
+        "first_result_s": 0.0006920999994690646,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 64,
+            "no_result": 190,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00957419999758713
+          },
+          "icmp": {
+            "result": 64,
+            "no_result": 190,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006693100001029961
+          },
+          "tcp": {
+            "result": 128,
+            "no_result": 126,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.007825400010915473
+          },
+          "snmp": {
+            "result": 63,
+            "no_result": 191,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.008251599998402526
+          },
+          "dns_ptr": {
+            "result": 64,
+            "no_result": 127,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 63,
+            "duration_s": 0.0056631999932506005
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 128,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 126,
+            "duration_s": 0.00307659999725729
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 128,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 126,
+            "duration_s": 0.003001899995979329
+          },
+          "http": {
+            "result": 128,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 126,
+            "duration_s": 0.0034215999994557933
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 191,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 63,
+            "duration_s": 0.004703099994912918
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 128,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 126,
+            "duration_s": 0.002935600005002925
+          },
+          "tls": {
+            "result": 128,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 126,
+            "duration_s": 0.003297499996733677
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 127,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 127,
+            "duration_s": 0.0031645999961256166
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "mixed",
+      "targets": 1024,
+      "workers": 32,
+      "duration_s": 0.822653,
+      "cpu_process_s": 0.828125,
+      "first_result_s": 0.011058,
+      "first_complete_s": 0.062466,
+      "python_peak_allocations_mib": 1.198,
+      "completed": 1024,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 770,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "67fd4d2b20a5866ea1a171efd8c642a906567cab202ed4758e8fb7760eca398b",
+      "metrics": {
+        "duration_s": 0.8135626000002958,
+        "cpu_process_s": 0.828125,
+        "first_result_s": 0.0009774000000106753,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 258,
+            "no_result": 766,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03681440000036673
+          },
+          "icmp": {
+            "result": 258,
+            "no_result": 766,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.05048180000449065
+          },
+          "tcp": {
+            "result": 516,
+            "no_result": 508,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0526123000181542
+          },
+          "snmp": {
+            "result": 254,
+            "no_result": 770,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.05638180000096327
+          },
+          "dns_ptr": {
+            "result": 258,
+            "no_result": 512,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.03698220000933361
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 516,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 508,
+            "duration_s": 0.013339100013581628
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 516,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 508,
+            "duration_s": 0.013433500005703536
+          },
+          "http": {
+            "result": 516,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 508,
+            "duration_s": 0.014672899996185151
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 770,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.1432233999876189
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 516,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 508,
+            "duration_s": 0.012836899993999396
+          },
+          "tls": {
+            "result": 516,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 508,
+            "duration_s": 0.014187399994625594
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 512,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 512,
+            "duration_s": 0.013262299993584747
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "mixed",
+      "targets": 4096,
+      "workers": 32,
+      "duration_s": 3.545519,
+      "cpu_process_s": 3.484375,
+      "first_result_s": 0.039126,
+      "first_complete_s": 0.088616,
+      "python_peak_allocations_mib": 2.919,
+      "completed": 4096,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 3080,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "28181fee22278d59dd28ad67e2cca7b45a66bf0a4ba91c521736ac5022629c93",
+      "metrics": {
+        "duration_s": 3.507988999999725,
+        "cpu_process_s": 3.453125,
+        "first_result_s": 0.0009219999992637895,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 1032,
+            "no_result": 3064,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.19127609997394757
+          },
+          "icmp": {
+            "result": 1032,
+            "no_result": 3064,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.12921089998053503
+          },
+          "tcp": {
+            "result": 2064,
+            "no_result": 2032,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.32453249999252876
+          },
+          "snmp": {
+            "result": 1016,
+            "no_result": 3080,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.4625444000148491
+          },
+          "dns_ptr": {
+            "result": 1032,
+            "no_result": 2048,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1016,
+            "duration_s": 0.25136549998751434
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 2064,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 2032,
+            "duration_s": 0.1066320000190899
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 2064,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 2032,
+            "duration_s": 0.05427889998736646
+          },
+          "http": {
+            "result": 2064,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 2032,
+            "duration_s": 0.07670369999959803
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 3080,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1016,
+            "duration_s": 0.14294569999128726
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 2064,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 2032,
+            "duration_s": 0.05316049999419192
+          },
+          "tls": {
+            "result": 2064,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 2032,
+            "duration_s": 0.127533100002438
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 2048,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 2048,
+            "duration_s": 0.1503573000063625
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "icmp_blocked",
+      "targets": 32,
+      "workers": 32,
+      "duration_s": 0.035353,
+      "cpu_process_s": 0.03125,
+      "first_result_s": 0.002901,
+      "first_complete_s": 0.033918,
+      "python_peak_allocations_mib": 0.144,
+      "completed": 32,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 32,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "d1b96eda4dab887179cec8b52e0d83cfe0205642ebc767ec77846f9e29ea2493",
+      "metrics": {
+        "duration_s": 0.03408690000014758,
+        "cpu_process_s": 0.03125,
+        "first_result_s": 0.0008338999996340135,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0012246999967828742
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008418000006713555
+          },
+          "tcp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0010500999951545964
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0010257999992973055
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008383999984289403
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008509999988746131
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.000748000001294713
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.000781600001573679
+          },
+          "http": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0007871999996496015
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.000698800002282951
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0007070999972711434
+          },
+          "tls": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008952000016506645
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "icmp_blocked",
+      "targets": 254,
+      "workers": 32,
+      "duration_s": 0.241145,
+      "cpu_process_s": 0.234375,
+      "first_result_s": 0.005179,
+      "first_complete_s": 0.063693,
+      "python_peak_allocations_mib": 0.514,
+      "completed": 254,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 254,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "cef10b8fed49f244686414080c87ec883a166fa13ee08539b3112bb66f58c237",
+      "metrics": {
+        "duration_s": 0.2374697000004744,
+        "cpu_process_s": 0.234375,
+        "first_result_s": 0.0009055999998963671,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.009454099999857135
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0062808999964545364
+          },
+          "tcp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00744580000082351
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00749270000414981
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006395100002009713
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0061830000013287645
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00594219999948109
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006005199990795518
+          },
+          "http": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006514199995763192
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.005704700000023877
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.005714299998544448
+          },
+          "tls": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006415099991500028
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "icmp_blocked",
+      "targets": 1024,
+      "workers": 32,
+      "duration_s": 1.00649,
+      "cpu_process_s": 1.046875,
+      "first_result_s": 0.013682,
+      "first_complete_s": 0.074096,
+      "python_peak_allocations_mib": 1.219,
+      "completed": 1024,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 1024,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "19e53d220ec2e1c26c12f6fec7630c71ff94a96c07413d4d52311ca0f02aee7a",
+      "metrics": {
+        "duration_s": 0.9949892000004184,
+        "cpu_process_s": 1.046875,
+        "first_result_s": 0.0012314000005062553,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03581299999859766
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02632730002005701
+          },
+          "tcp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.06099700001959718
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.06383440000263363
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02710580001166818
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.025730800016390276
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.025312099991424475
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.10297630000968638
+          },
+          "http": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.10944110000582441
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.024735900012274215
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.024819100007334782
+          },
+          "tls": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02775770000243938
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "icmp_blocked",
+      "targets": 4096,
+      "workers": 32,
+      "duration_s": 3.891492,
+      "cpu_process_s": 3.921875,
+      "first_result_s": 0.045225,
+      "first_complete_s": 0.106449,
+      "python_peak_allocations_mib": 3.717,
+      "completed": 4096,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 4096,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "5c99b8fa576a169fa77e6ad6c4ad9cc992992fabe88f0e65b0d19487ce660241",
+      "metrics": {
+        "duration_s": 3.8477742000004582,
+        "cpu_process_s": 3.875,
+        "first_result_s": 0.0008614999997007544,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.47955900001215923
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.1702655999815761
+          },
+          "tcp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.1610450000025594
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.47015910000845906
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.33500899999216927
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.10264620002544689
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.09998169996924844
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.27218789996459236
+          },
+          "http": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.3614556999937122
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.20142329999725916
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.276931499973216
+          },
+          "tls": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.19280859999526
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "snmp_only",
+      "targets": 32,
+      "workers": 32,
+      "duration_s": 0.027893,
+      "cpu_process_s": 0.03125,
+      "first_result_s": 0.003164,
+      "first_complete_s": 0.026601,
+      "python_peak_allocations_mib": 0.141,
+      "completed": 32,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 32,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "db68796f6fa46eed1fa3cdac0888aa1b6d4a2b964978a642a205d79fa2b1f40d",
+      "metrics": {
+        "duration_s": 0.026320999999370542,
+        "cpu_process_s": 0.03125,
+        "first_result_s": 0.0010898999998971703,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.001214299997627677
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009037000008902396
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0010406000010334537
+          },
+          "snmp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0012573999974847538
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009296999996877275
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0007962999998198939
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0007588000007672235
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "snmp_only",
+      "targets": 254,
+      "workers": 32,
+      "duration_s": 0.189096,
+      "cpu_process_s": 0.1875,
+      "first_result_s": 0.004007,
+      "first_complete_s": 0.050786,
+      "python_peak_allocations_mib": 0.493,
+      "completed": 254,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 254,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "04c50f5f2e0525ba628670ab47df55d63a8d9cccfbab146081a09b4e63b72fc5",
+      "metrics": {
+        "duration_s": 0.18610660000013013,
+        "cpu_process_s": 0.1875,
+        "first_result_s": 0.0007726000003458466,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00972279999677994
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006602399994335428
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0072273999903700314
+          },
+          "snmp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.009431999999833351
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006694900003822113
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006027999996149447
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006032399998730398
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "snmp_only",
+      "targets": 1024,
+      "workers": 32,
+      "duration_s": 0.733361,
+      "cpu_process_s": 0.765625,
+      "first_result_s": 0.012343,
+      "first_complete_s": 0.067948,
+      "python_peak_allocations_mib": 1.167,
+      "completed": 1024,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 1024,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "e3ce27517dc4acc07267966832d8c9a62f7b45a83f5057adec54bb049c5263fa",
+      "metrics": {
+        "duration_s": 0.7214807000000292,
+        "cpu_process_s": 0.75,
+        "first_result_s": 0.0009335999993709265,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0481194000085452
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02541669997935969
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02928809997774806
+          },
+          "snmp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03589019998707954
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02624729998569819
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.06416439999065915
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02422939999451046
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "snmp_only",
+      "targets": 4096,
+      "workers": 32,
+      "duration_s": 3.046113,
+      "cpu_process_s": 3.046875,
+      "first_result_s": 0.038725,
+      "first_complete_s": 0.08502,
+      "python_peak_allocations_mib": 3.39,
+      "completed": 4096,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 4096,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "c6b67225aad4c074f563d18cc1ed0338a6d4f9e6cb7498eab310548f7edb456a",
+      "metrics": {
+        "duration_s": 3.0085767999999007,
+        "cpu_process_s": 3.0,
+        "first_result_s": 0.001001699999505945,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.18918550000034884
+          },
+          "icmp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.24464770000668068
+          },
+          "tcp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.16663229997084272
+          },
+          "snmp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.17539789995134925
+          },
+          "dns_ptr": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.20265639999706764
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.3554817000094772
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.1024894999618482
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "http": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "tls": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "slow_dns",
+      "targets": 32,
+      "workers": 32,
+      "duration_s": 0.042535,
+      "cpu_process_s": 0.03125,
+      "first_result_s": 0.002028,
+      "first_complete_s": 0.032474,
+      "python_peak_allocations_mib": 0.186,
+      "completed": 32,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 32,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "72c6ab304aa7d29561e412bb3c9e353863f26ec9f441e307ee652de410c2f44e",
+      "metrics": {
+        "duration_s": 0.04145210000024235,
+        "cpu_process_s": 0.03125,
+        "first_result_s": 0.0007531000001108623,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.001202199997351272
+          },
+          "icmp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008675000026414637
+          },
+          "tcp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009622000006856979
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.000906899998881272
+          },
+          "dns_ptr": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.28633580000223446
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009706000000733184
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0006788999990021694
+          },
+          "http": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0007561000011264696
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0006774000030418392
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0007137999982660403
+          },
+          "tls": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008160999996107421
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "slow_dns",
+      "targets": 254,
+      "workers": 32,
+      "duration_s": 0.27091,
+      "cpu_process_s": 0.296875,
+      "first_result_s": 0.00412,
+      "first_complete_s": 0.06668,
+      "python_peak_allocations_mib": 0.578,
+      "completed": 254,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 254,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "f54c96d32af0cdc797ee9dcbe763a16c1af5b858538c91132623e2fea86a9f2b",
+      "metrics": {
+        "duration_s": 0.2673843000002307,
+        "cpu_process_s": 0.296875,
+        "first_result_s": 0.0006457999998019659,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.008235400008743454
+          },
+          "icmp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0062490999916917644
+          },
+          "tcp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00725139999849489
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00727480000750802
+          },
+          "dns_ptr": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 3.37370099999589
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.009087800000088464
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006427800003621087
+          },
+          "http": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.007142499986002804
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.00619559999267949
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0059999000068273745
+          },
+          "tls": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.006758500003343215
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "slow_dns",
+      "targets": 1024,
+      "workers": 32,
+      "duration_s": 1.025051,
+      "cpu_process_s": 1.015625,
+      "first_result_s": 0.009996,
+      "first_complete_s": 0.070898,
+      "python_peak_allocations_mib": 1.292,
+      "completed": 1024,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 1024,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "79500ed1de66a65a2ac48fd431d77b3653b11e8de49f951ac6415dff73ae80c3",
+      "metrics": {
+        "duration_s": 1.0161048999998457,
+        "cpu_process_s": 1.0,
+        "first_result_s": 0.0008501999991494813,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.030861100005495246
+          },
+          "icmp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.025442300003305718
+          },
+          "tcp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02970220000224799
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02871149999282352
+          },
+          "dns_ptr": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 24.884512399975392
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03556669999034057
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.025234000007912982
+          },
+          "http": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.028086699982850405
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.024475099991832394
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.02606859999104927
+          },
+          "tls": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.026956600006997178
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "slow_dns",
+      "targets": 4096,
+      "workers": 32,
+      "duration_s": 4.206485,
+      "cpu_process_s": 4.15625,
+      "first_result_s": 0.033776,
+      "first_complete_s": 0.092376,
+      "python_peak_allocations_mib": 3.956,
+      "completed": 4096,
+      "errors": 0,
+      "cancelled": false,
+      "final_devices": 4096,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "180e8f5f97c2e15eb11466fc74acc6288c790694309f53a9d09e0a227fbd6085",
+      "metrics": {
+        "duration_s": 4.173365499999818,
+        "cpu_process_s": 4.125,
+        "first_result_s": 0.0006852000005892478,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.12249439998231537
+          },
+          "icmp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.10744510002950847
+          },
+          "tcp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.12521510002352443
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.12044959995364479
+          },
+          "dns_ptr": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 118.5779564999657
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.15068439999504335
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.10616679998111067
+          },
+          "http": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.11674540002422873
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.10041020000153367
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.09707419994992961
+          },
+          "tls": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.1113606999942931
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "errors",
+      "targets": 32,
+      "workers": 32,
+      "duration_s": 0.033663,
+      "cpu_process_s": 0.03125,
+      "first_result_s": 0.003294,
+      "first_complete_s": 0.032461,
+      "python_peak_allocations_mib": 0.165,
+      "completed": 32,
+      "errors": 4,
+      "cancelled": false,
+      "final_devices": 28,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "89e2628e4b10fc404a83275f25deff83e770fa2e03afde00331c6bb13e9bddd5",
+      "metrics": {
+        "duration_s": 0.03258270000060293,
+        "cpu_process_s": 0.03125,
+        "first_result_s": 0.0009049999998751446,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0012352000067039626
+          },
+          "icmp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0008834999971440993
+          },
+          "tcp": {
+            "result": 32,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009474000025875284
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 32,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0009513000022707274
+          },
+          "dns_ptr": {
+            "result": 28,
+            "no_result": 0,
+            "error": 4,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.0011923999963983078
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 28,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4,
+            "duration_s": 0.0006541999946421129
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 28,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4,
+            "duration_s": 0.0006409000015992206
+          },
+          "http": {
+            "result": 28,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4,
+            "duration_s": 0.0007083000009515672
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 28,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4,
+            "duration_s": 0.0006258000003072084
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 28,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4,
+            "duration_s": 0.0006026000019119238
+          },
+          "tls": {
+            "result": 28,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4,
+            "duration_s": 0.0006939999966562027
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 32,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "errors",
+      "targets": 254,
+      "workers": 32,
+      "duration_s": 0.25933,
+      "cpu_process_s": 0.28125,
+      "first_result_s": 0.004578,
+      "first_complete_s": 0.07008,
+      "python_peak_allocations_mib": 0.579,
+      "completed": 254,
+      "errors": 36,
+      "cancelled": false,
+      "final_devices": 218,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "b1f416982c07b6a426ccb66a4252951a6bb01109b3e44cfb4f8ad41563ae98d1",
+      "metrics": {
+        "duration_s": 0.25684519999958866,
+        "cpu_process_s": 0.28125,
+        "first_result_s": 0.0008804999997664709,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.010081899998112931
+          },
+          "icmp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.007234300000163785
+          },
+          "tcp": {
+            "result": 254,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.008518900001035945
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 254,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.007773799992719432
+          },
+          "dns_ptr": {
+            "result": 218,
+            "no_result": 0,
+            "error": 36,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.009641899995585845
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 218,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 36,
+            "duration_s": 0.005454599999211496
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 218,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 36,
+            "duration_s": 0.005238400002781418
+          },
+          "http": {
+            "result": 218,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 36,
+            "duration_s": 0.006080800004383491
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 218,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 36,
+            "duration_s": 0.005406400001447764
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 218,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 36,
+            "duration_s": 0.005251300011877902
+          },
+          "tls": {
+            "result": 218,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 36,
+            "duration_s": 0.00619139999980689
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 254,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "errors",
+      "targets": 1024,
+      "workers": 32,
+      "duration_s": 1.007927,
+      "cpu_process_s": 1.03125,
+      "first_result_s": 0.011928,
+      "first_complete_s": 0.071865,
+      "python_peak_allocations_mib": 1.3,
+      "completed": 1024,
+      "errors": 145,
+      "cancelled": false,
+      "final_devices": 879,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "7135128b799509912fe819112f98d8183594cd138067c65b0b6eb9d11b8bc963",
+      "metrics": {
+        "duration_s": 0.9978817999999592,
+        "cpu_process_s": 1.015625,
+        "first_result_s": 0.0009386000001541106,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03896780001468869
+          },
+          "icmp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.1029828000055204
+          },
+          "tcp": {
+            "result": 1024,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03838099999848055
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 1024,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.03169090000301367
+          },
+          "dns_ptr": {
+            "result": 879,
+            "no_result": 0,
+            "error": 145,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.18992220002564864
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 879,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 145,
+            "duration_s": 0.024672399995324668
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 879,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 145,
+            "duration_s": 0.10746040000685753
+          },
+          "http": {
+            "result": 879,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 145,
+            "duration_s": 0.04919139999401523
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 879,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 145,
+            "duration_s": 0.021987800008901104
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 879,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 145,
+            "duration_s": 0.021485200004462968
+          },
+          "tls": {
+            "result": 879,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 145,
+            "duration_s": 0.02459159999671101
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 1024,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    },
+    {
+      "scenario": "errors",
+      "targets": 4096,
+      "workers": 32,
+      "duration_s": 4.829615,
+      "cpu_process_s": 4.703125,
+      "first_result_s": 0.053294,
+      "first_complete_s": 0.17375,
+      "python_peak_allocations_mib": 3.691,
+      "completed": 4096,
+      "errors": 580,
+      "cancelled": false,
+      "final_devices": 3516,
+      "cancel_to_finish_s": null,
+      "coverage_sha256": "25c0856675e0fd4a1ee35e9a8944cb4bf2392bf1c8e2dd8ba7a9b888bb7ab84f",
+      "metrics": {
+        "duration_s": 4.77857159999985,
+        "cpu_process_s": 4.65625,
+        "first_result_s": 0.000989099999969767,
+        "cancel_to_finish_s": null,
+        "probes": {
+          "arp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.2480575000263343
+          },
+          "icmp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.33184620001065923
+          },
+          "tcp": {
+            "result": 4096,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.1932642000128908
+          },
+          "snmp": {
+            "result": 0,
+            "no_result": 4096,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.24279809998461133
+          },
+          "dns_ptr": {
+            "result": 3516,
+            "no_result": 0,
+            "error": 580,
+            "cancelled": 0,
+            "not_run": 0,
+            "duration_s": 0.674760999978389
+          },
+          "pjl": {
+            "result": 0,
+            "no_result": 3516,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 580,
+            "duration_s": 0.1299803000274551
+          },
+          "onvif": {
+            "result": 0,
+            "no_result": 3516,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 580,
+            "duration_s": 0.209676300002684
+          },
+          "http": {
+            "result": 3516,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 580,
+            "duration_s": 0.43179499996949744
+          },
+          "sip": {
+            "result": 0,
+            "no_result": 3516,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 580,
+            "duration_s": 0.14246450001883204
+          },
+          "ssh": {
+            "result": 0,
+            "no_result": 3516,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 580,
+            "duration_s": 0.4333595999823956
+          },
+          "tls": {
+            "result": 3516,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 580,
+            "duration_s": 0.23042119999081478
+          },
+          "netbios": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "rdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ftp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          },
+          "ssdp": {
+            "result": 0,
+            "no_result": 0,
+            "error": 0,
+            "cancelled": 0,
+            "not_run": 4096,
+            "duration_s": 0.0
+          }
+        },
+        "probe_metrics_enabled": true
+      }
+    }
+  ],
+  "cancellation": {
+    "scenario": "slow_dns",
+    "targets": 254,
+    "workers": 32,
+    "duration_s": 0.013044,
+    "cpu_process_s": 0.0,
+    "first_result_s": 0.004722,
+    "first_complete_s": null,
+    "python_peak_allocations_mib": 0.051,
+    "completed": 0,
+    "errors": 0,
+    "cancelled": true,
+    "final_devices": 0,
+    "cancel_to_finish_s": 0.008494,
+    "coverage_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "metrics": {
+      "duration_s": 0.009927600000082748,
+      "cpu_process_s": 0.0,
+      "first_result_s": 0.001149799999438983,
+      "cancel_to_finish_s": 0.008047400000577909,
+      "probes": {
+        "arp": {
+          "result": 1,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 1,
+          "not_run": 0,
+          "duration_s": 0.00011349999931553612
+        },
+        "icmp": {
+          "result": 1,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 1,
+          "duration_s": 6.140000004961621e-05
+        },
+        "tcp": {
+          "result": 1,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 1,
+          "duration_s": 5.919999966863543e-05
+        },
+        "snmp": {
+          "result": 0,
+          "no_result": 1,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 1,
+          "duration_s": 4.2800000301213004e-05
+        },
+        "dns_ptr": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 1,
+          "not_run": 1,
+          "duration_s": 0.007843499999580672
+        },
+        "netbios": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "pjl": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "onvif": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "http": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "sip": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "rdp": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "ssh": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "ftp": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "tls": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        },
+        "ssdp": {
+          "result": 0,
+          "no_result": 0,
+          "error": 0,
+          "cancelled": 0,
+          "not_run": 2,
+          "duration_s": 0.0
+        }
+      },
+      "probe_metrics_enabled": true
+    }
+  }
+}

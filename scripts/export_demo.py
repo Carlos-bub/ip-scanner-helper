@@ -5,14 +5,14 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 
-from core.exporters import export_csv, export_json
-from core.html_topology import gerar_html_topologia_interativa
+from ip_scanner_helper.resources import RESOURCE_ROOT
+from ip_scanner_helper.infrastructure.exporters import export_csv, export_json
+from ip_scanner_helper.infrastructure.html_topology import gerar_html_topologia_interativa
 
 
 def main():
-    devices = json.loads((ROOT / "ui/assets/demo_inventory.json").read_text(encoding="utf-8"))
+    devices = json.loads((RESOURCE_ROOT / "demo_inventory.json").read_text(encoding="utf-8"))
     output = ROOT / "docs"
     output.mkdir(exist_ok=True)
     (output / "demo-topology.html").write_text(gerar_html_topologia_interativa(devices, "192.0.2.1"), encoding="utf-8")

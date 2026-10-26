@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.0.3 — 2026-10-26
+
+- Aplicação instalada como `ip_scanner_helper` no layout `src/`, com domínio, aplicação, infraestrutura e apresentação separados.
+- Coletor de rede e capacidades do desktop recebidos explicitamente; construção centralizada em `bootstrap.py`.
+- Classificação e modelo de interface local no domínio; template HTML compartilhado fora da apresentação Qt.
+- Entrada única por `python -m ip_scanner_helper` e comando instalado; atalho de desenvolvimento em `scripts/executar.cmd`.
+- Configuração PyInstaller em `packaging/windows/`, metadados derivados da versão do projeto e build com autoverificação obrigatória.
+- Empacotamento verifica fontes e executável validados antes de gerar os ZIPs públicos.
+- Testes organizados por camada; verificações de dependências, ciclos e execução fora do repositório adicionadas.
+- Guia de contribuição e decisão de arquitetura documentados; CI instala o pacote em vez de depender da árvore da raiz.
+
+## 2.0.2 — 2026-10-26
+
+- Descoberta IPv4 por `GetAdaptersAddresses`, incluindo prefixos, múltiplos endereços e gateway; PowerShell permanece como fallback.
+- Publicação antecipada de presença, seguida da identificação completa no mesmo IP, preservando detecção TCP/SNMP com ICMP bloqueado.
+- Modelo Qt atualiza células e insere/remove linhas sem reset quando a ordem relativa é preservada; seleção e detalhes continuam vinculados ao IP.
+- Coleta interrompida ou incompleta explicitamente indicada no registro e nos detalhes.
+- Métricas gerais de duração, CPU do processo, primeiro resultado e parada; diagnóstico detalhado opcional por sonda.
+- Progresso consolidado por lote de futures concluídas, reduzindo eventos redundantes.
+- Benchmark do scanner e coordenador com seis cenários simulados e quatro tamanhos, comparado com a referência 2.0.1.
+- 92 testes aprovados e smoke test Qt ampliado para presença antes do DNS e enriquecimento posterior.
+- Remoção dos módulos, scripts e teste exclusivos da antiga interface Tkinter; ponto de entrada de compatibilidade mantém o aplicativo Qt.
+- Empacotamento de fonte exclui estudos internos e arquivos locais de agentes; convenções de fim de linha adicionadas ao repositório.
+
 ## 2.0.1 — 2026-10-23
 
 - Primeiro incremento do plano de melhorias: coleta TCP não bloqueante do mesmo perfil de 13 portas.

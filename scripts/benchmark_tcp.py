@@ -17,8 +17,7 @@ import tracemalloc
 from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
-from core.tcp_probe import DEFAULT_TCP_PORTS, SocketBudget, scan_tcp_ports
+from ip_scanner_helper.infrastructure.network.tcp_probe import DEFAULT_TCP_PORTS, SocketBudget, scan_tcp_ports
 
 
 class FixtureNetwork:

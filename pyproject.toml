@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ip-scanner-helper"
-version = "2.0.1"
+version = "2.0.3"
 description = "Inventário de rede para Windows com evidências de identificação e mapas offline"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -20,13 +20,16 @@ classifiers = [
 build = ["pyinstaller>=6.16,<7"]
 
 [project.scripts]
-ip-scanner-helper = "main:main"
+ip-scanner-helper = "ip_scanner_helper.cli:main"
 
 [tool.setuptools]
-py-modules = ["main", "scanner_rede"]
+package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
-include = ["core*", "ui*"]
+where = ["src"]
+include = ["ip_scanner_helper*"]
+namespaces = false
 
 [tool.setuptools.package-data]
-ui = ["assets/*.html", "assets/*.json", "assets/*.png", "assets/*.ico", "qml/*.qml", "qml/qmldir"]
+"ip_scanner_helper.presentation" = ["assets/*.png", "assets/*.ico", "qml/*.qml", "qml/qmldir"]
+"ip_scanner_helper.resources" = ["*.json", "templates/*.html"]

@@ -1,12 +1,9 @@
 """Validate Windows native ICMP and real TCP selectors on loopback only."""
 
-from pathlib import Path
 import socket
-import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from core.tcp_probe import scan_tcp_ports, SocketBudget
-from core.windows_network import ping_ipv4
+from ip_scanner_helper.infrastructure.network.tcp_probe import scan_tcp_ports, SocketBudget
+from ip_scanner_helper.infrastructure.network.windows_network import ping_ipv4
 
 
 def main():

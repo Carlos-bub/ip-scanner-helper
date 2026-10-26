@@ -9,7 +9,7 @@ O projeto distingue presença confirmada, fabricante estimado por OUI, categoria
 ## Demonstração
 
 ```powershell
-python main.py --demo
+python -m ip_scanner_helper --demo
 ```
 
 A demonstração usa seis equipamentos fictícios na faixa de documentação `192.0.2.0/24`. Ela não consulta interfaces locais nem faz sondagens de rede. Exportação, filtros, propriedades e mapa ficam disponíveis; ações de rede são desativadas.
@@ -22,11 +22,12 @@ Um [exemplo de mapa HTML](docs/demo-topology.html) está incluído: baixe o arqu
 - Detalhes fechados por padrão; abertura pelo botão, duplo clique ou Enter, por escolha do usuário.
 - Controles desenhados em QML, paleta neutra, acento verde discreto, tipografia consistente e ícone próprio.
 - Tabela virtualizada: renderiza as células visíveis, com rolagem horizontal e vertical.
+- Presença publicada antes do fim da identificação; nome e serviços atualizados na mesma linha, com estado explícito de coleta incompleta.
 - Filtros de categoria, sem nome, sem MAC e categoria não identificada; busca por serviço e sem distinção de acentos.
 - Colunas configuráveis, larguras ajustáveis e ordenação numérica de IP e latência, mantendo medições ausentes ao final.
 - Opções avançadas recolhidas, tempo decorrido e consulta dos erros da execução.
 - Entrada por IP, faixa ou CIDR, com validação antes de expandir a lista e limite de 4.096 alvos.
-- Descoberta das interfaces IPv4 e suas máscaras reais no Windows, sem depender de acesso à internet.
+- Descoberta nativa das interfaces IPv4 e suas máscaras reais no Windows, com fallback PowerShell e sem depender de acesso à internet.
 - Modos rápido e completo, com concorrência configurável e cancelamento por execução.
 - TCP não bloqueante com limite global de sockets e ICMP nativo do Windows, com fallback de compatibilidade.
 - Presença por ARP atual, ICMP, conexão TCP ou resposta SNMP. O cache ARP sozinho não estabelece presença.
@@ -45,15 +46,17 @@ Requisitos: Windows 10/11 x64 e Python 3.11 ou superior. O ambiente local foi ve
 ```powershell
 python -m venv .venv
 .venv\Scripts\python.exe -m pip install -e .
-.venv\Scripts\python.exe main.py --demo
-.venv\Scripts\python.exe main.py
+.venv\Scripts\python.exe -m ip_scanner_helper --demo
+.venv\Scripts\python.exe -m ip_scanner_helper
 ```
 
-A instalação declara e instala o PySide6 Essentials, sem os módulos de navegador e multimídia. Também disponibiliza o comando:
+A instalação editável disponibiliza o pacote de `src/` e instala o PySide6 Essentials. Também disponibiliza o comando:
 
 ```powershell
 .venv\Scripts\ip-scanner-helper.exe --demo
 ```
+
+O atalho de desenvolvimento `scripts\executar.cmd` usa o mesmo ambiente virtual e aceita opções como `--demo`. Ele funciona independentemente da pasta atual do terminal. Para usuários finais, use o executável do pacote Windows.
 
 Na aplicação, selecione uma interface ou informe a faixa manualmente, escolha o modo e inicie a varredura. Comunidade SNMP e consultas simultâneas ficam em **Opções**. Em janelas compactas, a seleção de interface também fica nessa área. A interface selecionada sugere a faixa e identifica o gateway local; as rotas do Windows determinam a interface efetivamente utilizada pelas sondas.
 
@@ -72,22 +75,23 @@ O botão Parar solicita o cancelamento cooperativo. Consultas em andamento encer
 
 Os testes unitários e de regressão usam respostas simuladas. Cobrem BER/SNMP, comprimentos longos, validação de respostas, cancelamento e isolamento de sessões, exceções de tarefas, identificação por MAC, presença atual, RTT, certificados, limites de coleta, exportações e injeção de HTML.
 
-O registro da migração Qt está em [docs/validation.md](docs/validation.md). O primeiro incremento de desempenho está documentado em [docs/benchmarks/README.md](docs/benchmarks/README.md), com resultados simulados reproduzíveis. A [validação da versão 2.0.1](docs/validation-2.0.1.md) registra os testes e as limitações dessa entrega.
+A [validação 2.0.3](docs/validation-2.0.3.md) registra a organização em camadas, instalação e build. O registro da migração Qt está em [docs/validation.md](docs/validation.md). O primeiro incremento TCP está documentado em [docs/benchmarks/README.md](docs/benchmarks/README.md). A [validação 2.0.2](docs/validation-2.0.2.md) e o [benchmark do motor completo com coletores simulados](docs/benchmarks/engine.md) registram o fluxo progressivo, os testes e as limitações das medições.
 
-O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, filtros, colunas, três larguras e mapeamento de switch. Os coletores de rede são substituídos por fixtures locais. Requer uma sessão gráfica disponível e fecha as janelas automaticamente. O workflow do GitHub Actions prepara os testes no Windows com Python 3.11 e 3.14; sua execução remota depende de publicar o repositório.
+O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, filtros, colunas, três larguras e mapeamento de switch. Os coletores de rede são substituídos por fixtures locais. Requer uma sessão gráfica disponível e fecha as janelas automaticamente. O workflow do GitHub Actions instala o pacote e executa os testes no Windows com Python 3.11 e 3.14. O layout `src/` permite testar o pacote instalado, sem depender de imports da raiz do repositório.
 
 ## Gerar o executável
 
 ```powershell
-.venv\Scripts\python.exe -m pip install ".[build]"
-.venv\Scripts\python.exe -m PyInstaller --noconfirm --distpath dist/portfolio/2.0.1 --workpath build/portfolio IP_Scanner_Helper.spec
+.venv\Scripts\python.exe -m pip install -e ".[build]"
+.venv\Scripts\python.exe scripts/build_windows.py
+.venv\Scripts\python.exe scripts/package_release.py
 ```
 
-Saída: `dist/portfolio/2.0.1/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. O arquivo `.spec` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O pacote é maior que o da versão Tkinter porque inclui o runtime Qt.
+Saída: `dist/portfolio/2.0.3/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
 
 ```powershell
-dist\portfolio\2.0.1\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
-dist\portfolio\2.0.1\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
+dist\portfolio\2.0.3\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
+dist\portfolio\2.0.3\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
 ```
 
 Para gerar os artefatos públicos da demonstração:
@@ -96,44 +100,32 @@ Para gerar os artefatos públicos da demonstração:
 python scripts/export_demo.py
 ```
 
-Após validar o executável com `--self-check`, `python scripts/package_release.py` gera ZIPs separados de código-fonte e aplicação Windows, acompanhados por checksums SHA-256. O pacote de fonte usa uma lista explícita de pastas, excluindo o backup local, logs, ambientes virtuais e builds.
+`scripts/package_release.py` exige o build validado, confere a identidade das fontes e do executável e gera ZIPs separados de código-fonte e aplicação Windows, acompanhados por checksums SHA-256. O ZIP de fonte exclui backups, estudos internos, arquivos locais de agentes, logs, ambientes virtuais e builds. Os artefatos de `dist/portfolio/` devem ser distribuídos por GitHub Releases; não entram no Git.
 
 ## Arquitetura
 
-```mermaid
-flowchart LR
-    QML[Interface Qt Quick / QML] --> UI[ScannerController]
-    UI -->|opções imutáveis| Service[ScanService]
-    Service -->|fila limitada de tarefas| Scanner[scan_device]
-    Scanner --> Resolver[NetworkResolver]
-    Resolver --> SNMP[Codec BER / SNMP compartilhado]
-    Service -->|eventos por sessão| Queue[Fila de resultados]
-    Queue -->|loop principal| UI
-    UI --> Mapper[SwitchPortMapper]
-    Mapper --> SNMP
-    UI --> Export[CSV / JSON / HTML offline]
+```text
+src/ip_scanner_helper/
+├── domain/           # Regras de identificação, inventário, alvos e topologia
+├── application/      # Scanner, sessões, métricas e contratos
+├── infrastructure/   # Windows, protocolos de rede, exportações e logs
+├── presentation/     # Controlador Qt, modelo da tabela, QML e ícones
+├── resources/        # Inventário fictício e template HTML compartilhado
+├── bootstrap.py      # Construção e conexão das dependências
+├── cli.py            # Argumentos e inicialização
+└── __main__.py       # python -m ip_scanner_helper
+
+tests/                # Testes por camada e regras de arquitetura
+scripts/              # Execução, testes gráficos, benchmarks e distribuição
+packaging/windows/    # Configuração PyInstaller e hook Qt
+docs/                 # Arquitetura, decisões, validações e exemplos
 ```
 
-| Caminho | Responsabilidade |
-| --- | --- |
-| `core/scanner.py` | Coleta por equipamento e classificação por evidências |
-| `core/scan_service.py` | Agendamento limitado, cancelamento, eventos e erros |
-| `core/snmp.py` | Codificação BER, OIDs e validação de respostas SNMP |
-| `core/resolver.py` | Sondas de rede e resolução de nomes |
-| `core/switch_port_mapper.py` | IF-MIB, FDB, importação de tabelas e Telnet legado |
-| `core/topology.py` | Modelo do mapa e serialização segura |
-| `core/interfaces.py` | Endereços e prefixos locais do Windows |
-| `core/exporters.py` | Exportações de inventário |
-| `ui/qml/` | Tela declarativa, tema e controles visuais |
-| `ui/qt_controller.py` | Estado da tela e entrega de resultados pelo loop Qt |
-| `ui/qt_model.py` | Modelo da tabela virtualizada, com identidade por IP |
-| `ui/qt_app.py` | Ciclo de vida Qt, recursos e autoverificação |
-| `core/inventory.py` | Filtros, métricas, interpretação da origem e ordenação |
-| `tests/` | Testes unitários e regressões sem varredura real |
+O domínio concentra regras sem acesso à rede ou à interface. A aplicação coordena a varredura por contratos; a infraestrutura implementa os coletores. O controlador recebe os serviços explicitamente e atualiza a tabela pelo loop Qt. `bootstrap.py` conecta essas partes, sem iniciar sondagens na construção dos objetos.
 
-O aplicativo e o executável utilizam Qt Quick. O código da interface Tkinter anterior foi removido. Consulte também [dependências e avisos de terceiros](THIRD_PARTY_NOTICES.md).
+As regras de dependência são verificadas pela suíte. Não há ajustes de `sys.path`; o aplicativo funciona como pacote instalado e como executável Windows. O código da antiga interface Tkinter foi removido.
 
-Detalhes das decisões e limites estão em [docs/architecture.md](docs/architecture.md). As correções desta versão estão em [CHANGELOG.md](CHANGELOG.md).
+Consulte a [arquitetura](docs/architecture.md), a [decisão sobre a estrutura](docs/decisions/0001-modular-desktop-architecture.md), o [guia de contribuição](CONTRIBUTING.md) e os [avisos de terceiros](THIRD_PARTY_NOTICES.md).
 
 ## Interpretação dos resultados
 
@@ -156,7 +148,7 @@ Use somente em redes nas quais você tem autorização. A validação automatiza
 Por padrão: `%LOCALAPPDATA%\IPScannerHelper\scanner.log`, até três cópias rotativas de 1 MB. Para alterar a pasta:
 
 ```powershell
-python main.py --log-dir .\logs
+python -m ip_scanner_helper --log-dir .\logs
 ```
 
 Também é possível definir `IP_SCANNER_DATA_DIR`. Logs podem conter IPs e descrições dos equipamentos; eles, inventários privados, ambientes virtuais e executáveis gerados são excluídos pelo `.gitignore`.

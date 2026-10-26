@@ -1,4 +1,4 @@
-"""Rasterize the application's geometric network mark for Windows and Tk.
+"""Rasterize the application's geometric network mark for Windows and Qt Quick.
 
 The mark is defined by three outlined nodes and their connecting lines, not fonts.
 No external fonts, image library or network access is required.
@@ -8,7 +8,7 @@ from pathlib import Path
 import struct
 import zlib
 
-ASSETS = Path(__file__).resolve().parents[1] / "ui" / "assets"
+ASSETS = Path(__file__).resolve().parents[1] / "src/ip_scanner_helper/presentation/assets"
 BACKGROUND = (36, 49, 47)
 FOREGROUND = (235, 241, 230)
 
@@ -48,7 +48,7 @@ def main():
         offset += len(data)
     (ASSETS / "app.ico").write_bytes(struct.pack("<HHH", 0, 1, len(sizes)) + b"".join(entries + images))
     (ASSETS / "app.png").write_bytes(images[1])
-    print("Ícones geométricos gerados em ui/assets.")
+    print("Ícones geométricos gerados em src/ip_scanner_helper/presentation/assets.")
 
 
 if __name__ == "__main__":

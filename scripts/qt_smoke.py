@@ -3,24 +3,25 @@
 from pathlib import Path
 import sys
 import time
+from threading import Event
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT))
 
 from PySide6.QtCore import QObject, QPointF, QMetaObject, Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 import shiboken6
 
-from core.scan_service import ScanService
-from ui.qt_app import create_window
-from ui.qt_controller import ScannerController
+from ip_scanner_helper.application.scan_service import ScanEvent
+from ip_scanner_helper.bootstrap import create_scan_service, create_desktop_services
+from ip_scanner_helper.presentation.qt_app import create_window
+from ip_scanner_helper.presentation.qt_controller import ScannerController
 
 
 def main(capture=False):
     app = QApplication.instance() or QApplication([])
-    controller = ScannerController(demo=True)
+    controller = ScannerController(service=create_scan_service(), desktop=create_desktop_services(), demo=True)
     engine, window = create_window(controller)
     table = window.findChild(QObject, "inventoryTable")
     panel = window.findChild(QObject, "detailPanel")
@@ -117,7 +118,7 @@ def main(capture=False):
         host = controller.devices[1]
         ports = [{"nome": "Gi1/0/1", "status": "Link UP", "macs": [host["mac"]],
                   "hosts": [host], "coleta_parcial": False}]
-        with patch("ui.qt_controller.SwitchPortMapper.mapear_switch", return_value=ports):
+        with patch("ip_scanner_helper.infrastructure.network.switch_port_mapper.SwitchPortMapper.mapear_switch", return_value=ports):
             controller.mapSwitch("public")
             QMetaObject.invokeMethod(dialog, "open")
             wait_for(lambda: not controller.state["switchBusy"])
@@ -127,19 +128,80 @@ def main(capture=False):
             QMetaObject.invokeMethod(dialog, "close")
 
         sample = dict(controller.devices[1])
-        controller.service = ScanService(worker=lambda ip, *args: dict(sample, ip=ip))
-        with patch("core.scan_service.NetworkResolver.carregar_arp_cache", return_value={}):
+        controller.service = create_scan_service(worker=lambda ip, *args: dict(sample, ip=ip))
+        with patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.carregar_arp_cache", return_value={}):
             controller.setTarget("192.0.2.1-192.0.2.3")
             controller.startScan("public", 2)
             wait_for(lambda: not controller.state["scanning"])
         assert controller.table.rowCount() == 3
         assert controller.state["progress"] == 1.0
+
+        # Exercise the actual pipeline in the rendered UI, with every collector
+        # replaced. Pause DNS until partial rows are visibly selected.
+        entered, release = Event(), Event()
+        def slow_dns(*args):
+            entered.set()
+            release.wait(2)
+            return "fixture.example"
+        controller.service = create_scan_service()
+        with patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.carregar_arp_cache", return_value={}), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.obter_mac_e_presenca_windows", return_value=("02:00:00:00:00:01", True)), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.ping_measurement", return_value=(True, 1)), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.scan_ports", return_value=[]), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_snmp", return_value=(None, None, None)), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=slow_dns):
+            controller.setMode("Rápido")
+            controller.startScan("public", 3)
+            try:
+                wait_for(lambda: entered.is_set() and controller.table.rowCount() == 3)
+                assert controller.state["completed"] == 0
+                assert all(not item["coleta_completa"] for item in controller.devices)
+                # rowsInserted updates the Python count before TableView's next
+                # polish/render pass; wait for the visible cells before clicking.
+                QTest.qWait(120)
+                click(table, 40, 23)
+                assert controller.state["selectedIp"], (
+                    "Partial row was not selectable", table.property("contentX"),
+                    table.property("contentY"), engine.qml_warnings)
+                QTest.keyClick(window, Qt.Key_Return)
+                QTest.qWait(50)
+                selected_ip = controller.state["selectedIp"]
+                assert panel.isVisible()
+            finally:
+                release.set()
+            wait_for(lambda: not controller.state["scanning"])
+        assert controller.table.rowCount() == 3
+        assert len(controller.devices) == 3
+        assert all(item["coleta_completa"] for item in controller.devices)
+        assert controller.state["selectedIp"] == selected_ip
+        assert controller.state["selected"]["nome"] == "fixture.example"
+        assert panel.isVisible()
+
+        # Enrich a selected row inside a scrolled inventory, without moving the
+        # viewport back to the top or losing the selected IP.
+        base = dict(controller.devices[0])
+        controller.devices = [dict(base, ip=f"192.0.2.{index}") for index in range(1, 97)]
+        controller._refresh()
+        QTest.qWait(150)
+        table.setProperty("contentY", 46 * 30)
+        controller.selectRow(32)
+        QTest.qWait(100)
+        scroll_before = table.property("contentY")
+        assert scroll_before > 1000
+        selected_ip = controller.state["selectedIp"]
+        controller.service.events.put(ScanEvent(controller._session, "device",
+                                               {"device": dict(controller.devices[32], nome="Nome atualizado")}))
+        controller.poll()
+        QTest.qWait(100)
+        assert abs(table.property("contentY") - scroll_before) < 1
+        assert controller.state["selectedIp"] == selected_ip
+        assert controller.state["selected"]["nome"] == "Nome atualizado"
         assert not engine.qml_warnings, "\n".join(engine.qml_warnings)
     finally:
         controller.close()
         window.close()
         shiboken6.delete(engine)
-    print("Qt Quick OK: cliques, teclado, filtros, colunas, 3 larguras, switches e varredura simulada.")
+    print("Qt Quick OK: cliques, teclado, filtros, colunas, 3 larguras, switches e identificação progressiva simulada.")
 
 
 if __name__ == "__main__":
