@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ip-scanner-helper"
+version = "2.0.1"
+description = "Inventário de rede para Windows com evidências de identificação e mapas offline"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["PySide6-Essentials>=6.10,<7"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Networking :: Monitoring",
+]
+
+[project.optional-dependencies]
+build = ["pyinstaller>=6.16,<7"]
+
+[project.scripts]
+ip-scanner-helper = "main:main"
+
+[tool.setuptools]
+py-modules = ["main", "scanner_rede"]
+
+[tool.setuptools.packages.find]
+include = ["core*", "ui*"]
+
+[tool.setuptools.package-data]
+ui = ["assets/*.html", "assets/*.json", "assets/*.png", "assets/*.ico", "qml/*.qml", "qml/qmldir"]

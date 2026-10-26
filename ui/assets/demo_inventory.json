@@ -1,0 +1,50 @@
+[
+  {
+    "ip": "192.0.2.2", "nome": "SW-LAB-01", "fabricante": "Fabricante fictício", "tipo": "Switch",
+    "latencia": "1 ms", "latencia_ms": 1, "mac": "02:00:00:00:00:02", "origem_mac": "Demonstração",
+    "portas": "SSH(22) · HTTPS(443)", "origem": "SNMP simulado", "confianca": "Alta",
+    "evidencia_categoria": "Descrição SNMP simulada: Managed switch", "evidencias": ["Dados fictícios"],
+    "status": "Demonstração — dados fictícios", "snmp_descr": "Managed switch de demonstração",
+    "ssl_cn": "Não disponível", "web_title": "Switch Lab", "netbios_name": "Não disponível", "dns_ptr": "sw-lab.example"
+  },
+  {
+    "ip": "192.0.2.10", "nome": "ESTACAO-DESIGN", "fabricante": "Fabricante fictício", "tipo": "Estação / Servidor",
+    "latencia": "< 1 ms", "latencia_ms": null, "mac": "02:00:00:00:00:10", "origem_mac": "Demonstração",
+    "portas": "SMB(445) · RDP(3389)", "origem": "DNS simulado", "confianca": "Baixa",
+    "evidencia_categoria": "Serviços RDP/SMB; função não confirmada", "evidencias": ["Dados fictícios"],
+    "status": "Demonstração — dados fictícios", "snmp_descr": "Não disponível", "ssl_cn": "estacao.example",
+    "web_title": "Não disponível", "netbios_name": "ESTACAO-DESIGN", "dns_ptr": "estacao.example",
+    "switch_observations": [{"switch_ip": "192.0.2.2", "port": "Gi1/0/4", "direct_link_confirmed": false}]
+  },
+  {
+    "ip": "192.0.2.11", "nome": "IMPRESSORA-LAB", "fabricante": "Fabricante fictício", "tipo": "Impressora",
+    "latencia": "2 ms", "latencia_ms": 2, "mac": "02:00:00:00:00:11", "origem_mac": "Demonstração",
+    "portas": "HTTP(80) · RAW-Print(9100)", "origem": "PJL simulado", "confianca": "Alta",
+    "evidencia_categoria": "Modelo PJL simulado", "evidencias": ["Dados fictícios"], "status": "Demonstração — dados fictícios",
+    "snmp_descr": "Printer de demonstração", "ssl_cn": "Não disponível", "web_title": "Impressora Lab",
+    "netbios_name": "Não disponível", "dns_ptr": "printer.example",
+    "switch_observations": [{"switch_ip": "192.0.2.2", "port": "Gi1/0/8", "direct_link_confirmed": false}]
+  },
+  {
+    "ip": "192.0.2.12", "nome": "CAMERA-ENTRADA", "fabricante": "Fabricante fictício", "tipo": "CFTV",
+    "latencia": "Não medida", "latencia_ms": null, "mac": "02:00:00:00:00:12", "origem_mac": "Demonstração",
+    "portas": "HTTP(80)", "origem": "ONVIF simulado", "confianca": "Alta", "evidencia_categoria": "Resposta ONVIF simulada",
+    "evidencias": ["Dados fictícios"], "status": "Demonstração — dados fictícios", "snmp_descr": "Não disponível",
+    "ssl_cn": "Não disponível", "web_title": "Câmera Lab", "netbios_name": "Não disponível", "dns_ptr": "Não disponível"
+  },
+  {
+    "ip": "192.0.2.13", "nome": "TELEFONE-LAB", "fabricante": "Fabricante fictício", "tipo": "Telefonia IP",
+    "latencia": "3 ms", "latencia_ms": 3, "mac": "02:00:00:00:00:13", "origem_mac": "Demonstração",
+    "portas": "HTTP(80)", "origem": "SIP simulado", "confianca": "Alta", "evidencia_categoria": "Resposta SIP simulada",
+    "evidencias": ["Dados fictícios"], "status": "Demonstração — dados fictícios", "snmp_descr": "Não disponível",
+    "ssl_cn": "Não disponível", "web_title": "Telefone Lab", "netbios_name": "Não disponível", "dns_ptr": "Não disponível"
+  },
+  {
+    "ip": "192.0.2.14", "nome": "Dispositivo ativo", "fabricante": "MAC local / privado (fabricante indeterminado)",
+    "tipo": "Dispositivo não identificado", "latencia": "Não medida", "latencia_ms": null, "mac": "02:00:00:00:00:14",
+    "origem_mac": "Demonstração", "portas": "HTTPS(443)", "origem": "Detecção simulada", "confianca": "Baixa",
+    "evidencia_categoria": "Evidências insuficientes para definir categoria", "evidencias": ["Dados fictícios"],
+    "status": "Demonstração — dados fictícios", "snmp_descr": "Não disponível", "ssl_cn": "Não disponível",
+    "web_title": "Não disponível", "netbios_name": "Não disponível", "dns_ptr": "Não disponível"
+  }
+]
