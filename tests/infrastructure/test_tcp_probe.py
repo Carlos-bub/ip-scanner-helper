@@ -8,6 +8,8 @@ import time
 import unittest
 
 from ip_scanner_helper.infrastructure.network.tcp_probe import scan_tcp_ports, SocketBudget
+from ip_scanner_helper.application.timing import ProbeContext
+from ip_scanner_helper.application.errors import ProbeTimeout
 
 
 class FakeSocket:
@@ -81,6 +83,15 @@ class FakeNetwork:
 
 
 class TcpProbeTests(unittest.TestCase):
+    def test_batch_deadline_closes_pending_connections_and_retains_open_ports(self):
+        network = FakeNetwork(results={80: 0})
+        budget = SocketBudget(4)
+        with self.assertRaises(ProbeTimeout) as error:
+            self.run_probe(network, timeout=.2, budget=budget, context=ProbeContext.standalone(.025))
+        self.assertEqual(error.exception.partial, ["HTTP(80)"])
+        self.assertTrue(all(sock.closed for sock in network.sockets))
+        self.assertEqual(budget.active, 0)
+
     def run_probe(self, network, ports=None, **kwargs):
         return scan_tcp_ports("192.0.2.1", {80: "HTTP", 443: "HTTPS", 22: "SSH"} if ports is None else ports,
                               socket_factory=network.socket, selector_factory=network.selector, **kwargs)

@@ -28,7 +28,8 @@ Um [exemplo de mapa HTML](docs/demo-topology.html) está incluído: baixe o arqu
 - Opções avançadas recolhidas, tempo decorrido e consulta dos erros da execução.
 - Entrada por IP, faixa ou CIDR, com validação antes de expandir a lista e limite de 4.096 alvos.
 - Descoberta nativa das interfaces IPv4 e suas máscaras reais no Windows, com fallback PowerShell e sem depender de acesso à internet.
-- Modos rápido e completo, com concorrência configurável e cancelamento por execução.
+- Modos rápido e completo, com concorrência configurável, orçamento cooperativo por IP e cancelamento por execução.
+- Lista de coletas incompletas, preservando dados confirmados quando o limite de tempo é atingido.
 - TCP não bloqueante com limite global de sockets e ICMP nativo do Windows, com fallback de compatibilidade.
 - Presença por ARP atual, ICMP, conexão TCP ou resposta SNMP. O cache ARP sozinho não estabelece presença.
 - Identificação por SNMP v1/v2c, DNS reverso, NetBIOS, certificados TLS/RDP, títulos Web, PJL, banners SSH/FTP, SSDP, SIP e ONVIF, conforme o modo e os serviços encontrados.
@@ -58,13 +59,13 @@ A instalação editável disponibiliza o pacote de `src/` e instala o PySide6 Es
 
 O atalho de desenvolvimento `scripts\executar.cmd` usa o mesmo ambiente virtual e aceita opções como `--demo`. Ele funciona independentemente da pasta atual do terminal. Para usuários finais, use o executável do pacote Windows.
 
-Na aplicação, selecione uma interface ou informe a faixa manualmente, escolha o modo e inicie a varredura. Comunidade SNMP e consultas simultâneas ficam em **Opções**. Em janelas compactas, a seleção de interface também fica nessa área. A interface selecionada sugere a faixa e identifica o gateway local; as rotas do Windows determinam a interface efetivamente utilizada pelas sondas.
+Na aplicação, selecione uma interface ou informe a faixa manualmente, escolha o modo e inicie a varredura. Comunidade SNMP, consultas simultâneas e limite de tempo por IP ficam em **Opções**. O padrão é 20 segundos por alvo; ao atingir o limite, os dados confirmados permanecem na tabela e os endereços afetados aparecem em **N incompletas** no rodapé. Em janelas compactas, a seleção de interface também fica nessa área. A interface selecionada sugere a faixa e identifica o gateway local; as rotas do Windows determinam a interface efetivamente utilizada pelas sondas.
 
 Selecione uma linha e use **Detalhes**, duplo clique ou `Enter` para abrir o painel lateral. Apenas selecionar uma linha mantém a tabela inteira visível. As abas distinguem a origem do nome da confiança da categoria. Use **Colunas** para escolher os campos; IP e nome permanecem disponíveis. Arraste a borda do cabeçalho para ajustar larguras. O botão direito reúne as ações de cópia, acesso e mapeamento de portas. Atalhos: `Ctrl+F` busca, setas navegam, `Enter` abre detalhes e `Esc` limpa os filtros. Veja os [detalhes sob demanda](docs/desktop-details.png), a [janela compacta](docs/desktop-compact.png) e o [mapeamento de switch](docs/desktop-switch.png).
 
 O modo **Rápido** verifica presença, portas TCP comuns, SNMP, DNS e NetBIOS. O modo **Completo** acrescenta as sondas de identificação especializadas. O inventário exibe apenas equipamentos com resposta atual a pelo menos um dos métodos de presença.
 
-O botão Parar solicita o cancelamento cooperativo. Consultas em andamento encerram pelo próprio timeout; a aplicação só libera uma nova varredura após a anterior encerrar. Resultados de sessões antigas são descartados.
+O botão Parar solicita o cancelamento cooperativo. O DNS nativo aceita solicitação de cancelamento; demais consultas encerram nos pontos de verificação ou no timeout restante. Chamadas nativas como `SendARP` podem ultrapassar o prazo antes de retornar; a aplicação só libera uma nova varredura após a anterior encerrar. Resultados de sessões antigas são descartados. Consulte os [contratos de tempo e DNS reverso](docs/scan-timeouts.md).
 
 ## Testar
 
@@ -75,7 +76,7 @@ O botão Parar solicita o cancelamento cooperativo. Consultas em andamento encer
 
 Os testes unitários e de regressão usam respostas simuladas. Cobrem BER/SNMP, comprimentos longos, validação de respostas, cancelamento e isolamento de sessões, exceções de tarefas, identificação por MAC, presença atual, RTT, certificados, limites de coleta, exportações e injeção de HTML.
 
-A [validação 2.0.3](docs/validation-2.0.3.md) registra a organização em camadas, instalação e build. O registro da migração Qt está em [docs/validation.md](docs/validation.md). O primeiro incremento TCP está documentado em [docs/benchmarks/README.md](docs/benchmarks/README.md). A [validação 2.0.2](docs/validation-2.0.2.md) e o [benchmark do motor completo com coletores simulados](docs/benchmarks/engine.md) registram o fluxo progressivo, os testes e as limitações das medições.
+A [validação 2.0.4](docs/validation-2.0.4.md) registra os prazos, DNS nativo e estados incompletos. A [validação 2.0.3](docs/validation-2.0.3.md) registra a organização em camadas, instalação e build. O registro da migração Qt está em [docs/validation.md](docs/validation.md). O primeiro incremento TCP está documentado em [docs/benchmarks/README.md](docs/benchmarks/README.md). A [validação 2.0.2](docs/validation-2.0.2.md) e o [benchmark do motor completo com coletores simulados](docs/benchmarks/engine.md) registram o fluxo progressivo, os testes e as limitações das medições.
 
 O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, filtros, colunas, três larguras e mapeamento de switch. Os coletores de rede são substituídos por fixtures locais. Requer uma sessão gráfica disponível e fecha as janelas automaticamente. O workflow do GitHub Actions instala o pacote e executa os testes no Windows com Python 3.11 e 3.14. O layout `src/` permite testar o pacote instalado, sem depender de imports da raiz do repositório.
 
@@ -87,11 +88,11 @@ O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, 
 .venv\Scripts\python.exe scripts/package_release.py
 ```
 
-Saída: `dist/portfolio/2.0.3/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
+Saída: `dist/portfolio/2.0.4/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
 
 ```powershell
-dist\portfolio\2.0.3\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
-dist\portfolio\2.0.3\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
+dist\portfolio\2.0.4\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
+dist\portfolio\2.0.4\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
 ```
 
 Para gerar os artefatos públicos da demonstração:
@@ -137,7 +138,7 @@ Consulte a [arquitetura](docs/architecture.md), a [decisão sobre a estrutura](d
 
 ## Limites e próximos passos
 
-O foco é inventário IPv4 em Windows. ARP identifica vizinhos da sub-rede local; equipamentos de outras redes podem permanecer sem MAC. Os certificados TLS são coletados sem validação de confiança para identificação de equipamentos, portanto seus nomes são evidências declaradas pelo serviço. DNS via `nslookup` reconhece os rótulos de saída em português e inglês.
+O foco é inventário IPv4 em Windows. ARP identifica vizinhos da sub-rede local; equipamentos de outras redes podem permanecer sem MAC. Os certificados TLS são coletados sem validação de confiança para identificação de equipamentos, portanto seus nomes são evidências declaradas pelo serviço. O DNS reverso usa a API nativa com prazo e cancelamento; `nslookup` permanece como fallback quando a API não está disponível, reconhecendo os rótulos em português e inglês.
 
 SNMP v3, GETBULK, IPv6, vizinhança LLDP/CDP, histórico persistente, comparação de inventários, regras manuais e descoberta completa de VLANs ainda não estão implementados. O fallback Q-BRIDGE não garante cobertura de todas as VLANs. Telnet existe para equipamentos legados e transmite credenciais sem criptografia; os comandos de coleta podem exigir adaptação ao fabricante.
 

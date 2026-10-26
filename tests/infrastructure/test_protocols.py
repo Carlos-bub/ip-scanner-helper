@@ -46,8 +46,8 @@ class ProtocolTests(unittest.TestCase):
         for label in ("Name", "Nome"):
             result = SimpleNamespace(stdout=f"{label}: lab.example\nAddress: 192.0.2.1".encode(), returncode=0)
             with patch("ip_scanner_helper.infrastructure.network.resolver.subprocess.run", return_value=result) as run:
-                self.assertEqual(NetworkResolver.query_dns_ptr("192.0.2.1"), "lab.example")
-                self.assertEqual(run.call_args.kwargs["timeout"], 2.5)
+                self.assertEqual(NetworkResolver.query_dns_ptr_cli("192.0.2.1"), "lab.example")
+                self.assertLessEqual(run.call_args.kwargs["timeout"], 2.5)
 
     def test_mapper_preserves_more_than_sixty_interfaces(self):
         def walk(ip, community, root, timeout, max_reps):

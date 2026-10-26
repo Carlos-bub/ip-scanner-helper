@@ -28,6 +28,30 @@ class FakeService:
 
 
 class QtControllerTests(unittest.TestCase):
+    def test_target_timeout_is_captured_in_immutable_options(self):
+        c = self.live()
+        c.startScan("public", 4, 5.0)
+        self.assertEqual(self.service.options.timeouts.target_s, 5.0)
+        c.startScan("public", 4, 40.0)
+        self.assertEqual(self.service.options.timeouts.target_s, 5.0)
+
+    def test_budget_limited_result_keeps_specific_status_and_reports_unconfirmed_targets(self):
+        c = self.live()
+        c.startScan("public", 4)
+        limited = dict(c.devices[0]) if c.devices else {"ip": "192.0.2.1", "nome": "Dispositivo ativo"}
+        limited.update(coleta_completa=False, motivo_coleta_incompleta="tempo", status="Limite por IP atingido; identificação incompleta")
+        self.service.events.put(ScanEvent("current", "device", {"device": limited}))
+        self.service.events.put(ScanEvent("current", "incomplete", {"ip": "192.0.2.1", "reason": limited["status"]}))
+        self.service.events.put(ScanEvent("current", "incomplete", {"ip": "192.0.2.2", "reason": "Presença não confirmada; coleta limitada pelo tempo disponível"}))
+        self.service.events.put(ScanEvent("current", "finished", {"completed": 2, "total": 2, "errors": 0, "cancelled": False, "limited_targets": 2}))
+        c.poll()
+        self.assertEqual(c.state["limitedCount"], 2)
+        self.assertEqual(c.state["errorCount"], 0)
+        self.assertEqual(c.state["status"], "Concluída com coletas incompletas")
+        self.assertEqual(c.devices[0]["status"], limited["status"])
+        self.assertIn("192.0.2.2", c.state["limitedTargetsText"])
+        self.assertEqual(c.table.rowCount(), 1)
+
     @classmethod
     def setUpClass(cls):
         cls.application = QCoreApplication.instance() or QCoreApplication([])

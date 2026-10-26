@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.4 — 2026-10-26
+
+- Política imutável de timeouts, prazos monotônicos por operação e orçamento cooperativo de 20 segundos por IP, ajustável em Opções.
+- Dados válidos preservados ao atingir o limite; alvos sem presença confirmada ficam inconclusivos, sem dispositivos fictícios ou afirmação de IP livre.
+- Contagem e lista de coletas incompletas separadas dos erros; motivos preservados na tabela, nos detalhes e nas exportações.
+- PTR nativo com `DnsQueryEx`/`DnsCancelQuery`, limite de 64 contextos pendentes e liberação segura de respostas tardias; fallback limitado para `nslookup` somente quando a API estiver indisponível.
+- Prazo total para o lote TCP, incluindo espera pela capacidade global, fechamento de pendências e preservação de portas já aceitas.
+- Timeouts reduzidos ao tempo restante nas operações SNMP, UDP, banners, TLS/RDP e HTTP; campos SNMP válidos preservados quando uma consulta posterior for interrompida.
+- Leitura HTTP em blocos e redirecionamentos limitados ao IP e às portas selecionadas, sem drenagem ilimitada de corpos; respostas HTTP de autenticação fechadas corretamente.
+- 127 testes aprovados, teste gráfico ampliado e cobertura dos 24 cenários/tamanhos do benchmark preservada.
+
 ## 2.0.3 — 2026-10-26
 
 - Aplicação instalada como `ip_scanner_helper` no layout `src/`, com domínio, aplicação, infraestrutura e apresentação separados.

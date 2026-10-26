@@ -21,6 +21,7 @@ from ip_scanner_helper.application.scan_service import ScanService
 from ip_scanner_helper.application.ports import DesktopServices
 from ip_scanner_helper.resources import RESOURCE_ROOT
 from ip_scanner_helper.application.scanner import ScanOptions
+from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ScanTimeouts
 from ip_scanner_helper.domain.targets import parse_targets
 from ip_scanner_helper.presentation.qt_model import COLUMNS, InventoryModel
 
@@ -43,6 +44,7 @@ class ScannerController(QObject):
         self.devices = []
         self._device_positions = {}
         self.errors = []
+        self._limited = []
         self._jobs = {}
         self._completions = Queue()
         self._interfaces = []
@@ -64,6 +66,7 @@ class ScannerController(QObject):
             "switchBusy": False, "switchRows": [], "switchStatus": "", "switchTitle": "", "switchIp": "",
             "portsText": "", "viewMode": "inventory",
             "scanMetrics": {},
+            "targetTimeout": DEFAULT_TIMEOUTS.target_s, "limitedCount": 0, "limitedTargetsText": "",
         }
         self._column_options()
         self.timer = QTimer(self)
@@ -187,23 +190,26 @@ class ScannerController(QObject):
         return title + (("  ↓" if self._reverse else "  ↑") if key == self._sort_key else "")
 
     @Slot(str, int)
-    def startScan(self, community, workers):
+    @Slot(str, int, float)
+    def startScan(self, community, workers, target_timeout=DEFAULT_TIMEOUTS.target_s):
         if self.demo or self._data["scanning"]:
             return
         try:
             targets = parse_targets(self._data["target"])
-            options = ScanOptions(community=community.strip(), workers=workers, mode=self._data.get("mode", "Completo"))
+            options = ScanOptions(community=community.strip(), workers=workers, mode=self._data.get("mode", "Completo"),
+                                  timeouts=ScanTimeouts(target_s=target_timeout))
             self._session = self.service.start(targets, options)
         except (ValueError, RuntimeError) as exc:
             self.notice.emit("Não foi possível iniciar", str(exc))
             return
         self.devices.clear()
         self.errors.clear()
+        self._limited.clear()
         self._jobs.pop("switch", None)
         self._started = time.monotonic()
         self._selected_ip = ""
         self._data.update(scanning=True, stopping=False, detailsOpen=False, switchBusy=False, switchRows=[], progress=0.0,
-                          scanMetrics={},
+                          scanMetrics={}, targetTimeout=options.timeouts.target_s, limitedCount=0, limitedTargetsText="",
                           completed=0, total=len(targets), elapsed="00:00", errorCount=0,
                           errorsText="Nenhum erro nesta execução.", status="Consultando endereços da rede…")
         self._refresh()
@@ -282,12 +288,17 @@ class ScannerController(QObject):
             elif event.kind == "error":
                 self.errors.append(payload)
                 self._data["errorsText"] = "\n\n".join(f"{error.get('ip', 'Varredura')}: {error['message']}" for error in self.errors)
+            elif event.kind == "incomplete":
+                self._limited.append(payload)
+                self._data.update(limitedCount=len(self._limited), limitedTargetsText="\n\n".join(
+                    f"{item['ip']}: {item['reason']}" for item in self._limited))
             elif event.kind == "finished":
                 for device in self.devices:
-                    if device.get("coleta_completa") is False:
+                    if device.get("coleta_completa") is False and not device.get("motivo_coleta_incompleta"):
                         device["status"] = "Identificação interrompida" if payload["cancelled"] else "Identificação incompleta"
                         dirty = True
-                status = "Interrompida" if payload["cancelled"] else "Concluída com erros" if payload["errors"] else "Concluída"
+                status = ("Interrompida" if payload["cancelled"] else "Concluída com erros" if payload["errors"]
+                          else "Concluída com coletas incompletas" if payload.get("limited_targets") else "Concluída")
                 self._data.update(scanning=False, stopping=False, completed=payload["completed"],
                                   total=payload["total"], errorCount=payload["errors"],
                                   progress=payload["completed"] / max(1, payload["total"]),

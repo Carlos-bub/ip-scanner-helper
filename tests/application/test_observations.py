@@ -6,9 +6,25 @@ import time
 import unittest
 
 from ip_scanner_helper.application.observations import (PROBES, ProbeObservation, ProbeRecorder, ScanCancelled, ScanMetrics)
+from ip_scanner_helper.application.errors import ProbeTimeout, TargetBudgetExceeded
 
 
 class ObservationTests(unittest.TestCase):
+    def test_probe_timeout_and_target_budget_are_recorded_separately(self):
+        for error, expected in ((ProbeTimeout(), "timeout"), (TargetBudgetExceeded(), "budget_exhausted")):
+            records = []
+
+            def expire():
+                raise error
+
+            with self.subTest(expected=expected), self.assertRaises(ProbeTimeout), ProbeRecorder(Event(), records.append) as recorder:
+                recorder.call("dns_ptr", expire)
+            record = next(item for item in records if item.probe == "dns_ptr")
+            self.assertEqual(record.outcome, expected)
+            metrics = ScanMetrics()
+            metrics.observe(record)
+            self.assertEqual(metrics.snapshot()["probes"]["dns_ptr"][expected], 1)
+
     def test_tuple_without_response_is_not_a_success_and_skipped_probes_are_explicit(self):
         records = []
         with ProbeRecorder(Event(), records.append) as recorder:

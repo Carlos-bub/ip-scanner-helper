@@ -76,7 +76,7 @@ ApplicationWindow {
                         Text { text: "Consulta"; color: Theme.muted; font.pixelSize: 12 }
                         AppCombo { id: modeBox; Layout.preferredWidth: 128; model: ["Rápido", "Completo"]; currentIndex: 1; enabled: !root.state.scanning; onActivated: scanner.setMode(currentText) }
                     }
-                    AppButton { objectName: "optionsButton"; text: "Opções"; Layout.alignment: Qt.AlignBottom; hint: "Comunidade SNMP e consultas simultâneas"; onClicked: advanced.visible = !advanced.visible }
+                    AppButton { objectName: "optionsButton"; text: "Opções"; Layout.alignment: Qt.AlignBottom; hint: "Comunidade SNMP, consultas simultâneas e limite por IP"; onClicked: advanced.visible = !advanced.visible }
                     AppButton {
                         id: scanButton
                         objectName: "scanButton"
@@ -84,7 +84,7 @@ ApplicationWindow {
                         text: root.state.stopping ? "Encerrando…" : root.state.scanning ? "Parar varredura" : "Iniciar varredura"
                         variant: root.state.scanning ? "danger" : "primary"
                         enabled: !root.state.demo && !root.state.stopping
-                        onClicked: { if (enabled) { if (root.state.scanning) scanner.stopScan(); else scanner.startScan(community.text, Number(workers.text)); } }
+                        onClicked: { if (enabled) { if (root.state.scanning) scanner.stopScan(); else scanner.startScan(community.text, Number(workers.text), Number(targetTimeout.text)); } }
                     }
                 }
                 RowLayout {
@@ -101,6 +101,12 @@ ApplicationWindow {
                     AppField { id: workers; text: "32"; Layout.preferredWidth: 64; validator: IntValidator { bottom: 1; top: 128 } enabled: !root.state.scanning }
                     AppButton { text: "Atualizar interfaces"; variant: "quiet"; enabled: !root.state.demo && !root.state.scanning && !root.state.interfacesBusy; onClicked: scanner.refreshInterfaces() }
                     Item { Layout.fillWidth: true }
+                }
+                RowLayout {
+                    visible: advanced.visible; Layout.fillWidth: true; spacing: 12
+                    Text { text: "Limite por IP (s)"; color: Theme.muted; font.pixelSize: 12 }
+                    AppField { id: targetTimeout; objectName: "targetTimeoutField"; text: "20"; Layout.preferredWidth: 64; validator: IntValidator { bottom: 1; top: 120 } enabled: !root.state.scanning }
+                    Text { text: "Ao atingir o limite, os dados encontrados são preservados."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap }
                 }
             }
         }
@@ -284,6 +290,7 @@ ApplicationWindow {
             ProgressBar { visible: root.state.total > 0; value: root.state.progress; Layout.preferredWidth: 140; Layout.preferredHeight: 3; background: Rectangle { color: "#e1e6e9"; radius: 2 } contentItem: Item { Rectangle { width: parent.width * root.state.progress; height: parent.height; radius: 2; color: Theme.accent } } }
             Text { visible: root.state.total > 0; text: root.state.completed + "/" + root.state.total; color: Theme.muted; font.pixelSize: 12 }
             Item { Layout.fillWidth: true }
+            AppButton { objectName: "incompleteButton"; visible: root.state.limitedCount > 0; text: root.state.limitedCount + " incompletas"; variant: "quiet"; implicitHeight: 26; onClicked: { messageTitle.text = "Coletas incompletas"; messageBody.text = root.state.limitedTargetsText; messageDialog.open(); } }
             Text { visible: !root.state.demo; text: root.state.elapsed; color: Theme.muted; font.pixelSize: 12; font.family: "Consolas" }
             AppButton { text: root.state.errorCount + " erros"; variant: "quiet"; implicitHeight: 26; enabled: root.state.errorCount > 0; onClicked: { messageTitle.text = "Erros da varredura"; messageBody.text = root.state.errorsText; messageDialog.open(); } }
         }
@@ -321,6 +328,7 @@ ApplicationWindow {
 
     Dialog {
         id: messageDialog
+        objectName: "messageDialog"
         anchors.centerIn: parent
         width: Math.min(600, root.width - 80); height: Math.min(400, root.height - 80)
         modal: true; standardButtons: Dialog.Ok

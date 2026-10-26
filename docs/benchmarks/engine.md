@@ -48,6 +48,8 @@ A partir da versão 2.0.3, as fixtures são injetadas diretamente como `NetworkP
 | `no_result` | O coletor retornou valor vazio; não equivale a host desligado ou timeout confirmado |
 | `error` | Uma exceção foi propagada pelo coletor |
 | `cancelled` | A execução foi cancelada antes ou durante a chamada |
+| `timeout` | Prazo controlado da operação esgotado (adicionado em 2.0.4) |
+| `budget_exhausted` | Prazo cooperativo do IP esgotado (adicionado em 2.0.4) |
 | `not_run` | Sonda não executada, por modo, condição do serviço ou interrupção |
 
 Os coletores existentes ainda agrupam algumas falhas tratadas, recusas e timeouts em valores vazios. A instrumentação não inventa distinções que esses contratos não fornecem. Durações por sonda são somadas entre threads/alvos e podem exceder o tempo de parede da sessão. Operações nunca agendadas não aparecem como sondas executadas.
@@ -59,3 +61,5 @@ O resumo fica no evento `finished.metrics`, sem credenciais ou payloads de respo
 O adaptador nativo usa assinaturas e estruturas explícitas de [GetAdaptersAddresses](https://learn.microsoft.com/en-us/windows/win32/api/iphlpapi/nf-iphlpapi-getadaptersaddresses). A leitura mantém os buffers vivos durante a travessia, verifica comprimentos das estruturas, limita tentativas de redimensionamento e protege contra cadeias inválidas. Apenas interfaces ativas com IPv4 utilizável são oferecidas; endereços tentativos ou duplicados são excluídos da seleção. Isso não constitui um detector de conflitos da rede.
 
 O fallback PowerShell é acionado em falha da API, não quando a enumeração válida retorna vazia. A interface selecionada sugere a faixa; as rotas do Windows continuam determinando a saída efetiva das sondas.
+
+A versão 2.0.4 também manteve os registros finais e erros nos 24 cenários/tamanhos, com a política de tempo padrão. Relatório local: `build/benchmarks/deadlines-2.0.4.json`. Esta comparação verifica cobertura com fixtures e não demonstra ganho de duração total em rede real. Veja [prazos de coleta](../scan-timeouts.md).

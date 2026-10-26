@@ -11,6 +11,7 @@ from uuid import uuid4
 from ip_scanner_helper.application.ports import NetworkProbe
 from ip_scanner_helper.application.scanner import ScanCancelled, ScanOptions, scan_device
 from ip_scanner_helper.application.observations import ScanMetrics
+from ip_scanner_helper.application.errors import ScanIncomplete
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,7 @@ class ScanService:
         self.cancelled.set()
 
     def _run(self, session, targets, options, cancelled):
-        completed = errors = 0
+        completed = errors = limited = 0
         pending = {}
         metrics = ScanMetrics()
 
@@ -67,6 +68,11 @@ class ScanService:
             if not cancelled.is_set():
                 metrics.found()
                 emit("device", device=record)
+
+        def incomplete(ip, reason, probes):
+            nonlocal limited
+            limited += 1
+            emit("incomplete", ip=ip, reason=reason, probes=dict(probes))
 
         def run_worker(ip, arp):
             if self.worker is scan_device:
@@ -107,8 +113,15 @@ class ScanService:
                                 if result:
                                     metrics.found()
                                     emit("device", device=result)
+                                    if result.get("motivo_coleta_incompleta") == "tempo":
+                                        incomplete(ip, result["status"], result["sondas_incompletas"])
                         except ScanCancelled:
                             continue
+                        except ScanIncomplete as exc:
+                            if cancelled.is_set():
+                                continue
+                            completed += 1
+                            incomplete(ip, exc.reason, exc.probes)
                         except Exception:
                             completed += 1
                             errors += 1
@@ -116,12 +129,12 @@ class ScanService:
                             emit("error", ip=ip, message="Falha ao analisar endereço; consulte o log.")
                         progress_changed = True
                     if progress_changed:
-                        emit("progress", completed=completed, total=len(targets), errors=errors)
+                        emit("progress", completed=completed, total=len(targets), errors=errors, limited_targets=limited)
         except Exception:
             errors += 1
             logger.exception("Falha no coordenador de varredura")
             emit("error", message="Falha na varredura; consulte o log.")
         finally:
             emit("finished", completed=completed, total=len(targets), errors=errors,
-                 cancelled=cancelled.is_set(), metrics={**metrics.snapshot(self.cancel_requested_at),
+                 cancelled=cancelled.is_set(), limited_targets=limited, metrics={**metrics.snapshot(self.cancel_requested_at),
                                                        "probe_metrics_enabled": options.probe_metrics})

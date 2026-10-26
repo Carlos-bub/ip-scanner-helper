@@ -139,7 +139,7 @@ def main(capture=False):
         # Exercise the actual pipeline in the rendered UI, with every collector
         # replaced. Pause DNS until partial rows are visibly selected.
         entered, release = Event(), Event()
-        def slow_dns(*args):
+        def slow_dns(*args, **kwargs):
             entered.set()
             release.wait(2)
             return "fixture.example"
@@ -177,6 +177,41 @@ def main(capture=False):
         assert controller.state["selected"]["nome"] == "fixture.example"
         assert panel.isVisible()
 
+        # Real coordinator/scanner deadline, with no network I/O. Keep partial
+        # rows and offer the list of limited IPs without turning them into errors.
+        def deadline_dns(*args, **kwargs):
+            context = kwargs["context"]
+            context.cancelled.wait(.04)
+            context.check()
+            raise AssertionError("The per-IP deadline was not applied")
+
+        controller.service = create_scan_service()
+        with patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.carregar_arp_cache", return_value={}), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.obter_mac_e_presenca_windows", return_value=("02:00:00:00:00:01", True)), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.ping_measurement", return_value=(False, None)), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.scan_ports", return_value=[]), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_snmp", return_value=(None, None, None)), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=deadline_dns):
+            controller.startScan("public", 3, .03)
+            wait_for(lambda: not controller.state["scanning"])
+        assert controller.table.rowCount() == 3
+        assert controller.state["limitedCount"] == 3
+        assert controller.state["errorCount"] == 0
+        assert all(not item["coleta_completa"] for item in controller.devices)
+        assert all(item["motivo_coleta_incompleta"] == "tempo" for item in controller.devices)
+        window.setWidth(960)
+        QTest.qWait(150)
+        incomplete_button = window.findChild(QObject, "incompleteButton")
+        messages = window.findChild(QObject, "messageDialog")
+        assert incomplete_button.isVisible()
+        assert incomplete_button.mapToScene(QPointF(incomplete_button.width(), 0)).x() < window.width()
+        click(incomplete_button)
+        QTest.qWait(80)
+        assert messages.property("visible")
+        QMetaObject.invokeMethod(messages, "close")
+        window.setWidth(1440)
+        QTest.qWait(150)
+
         # Enrich a selected row inside a scrolled inventory, without moving the
         # viewport back to the top or losing the selected IP.
         base = dict(controller.devices[0])
@@ -201,7 +236,7 @@ def main(capture=False):
         controller.close()
         window.close()
         shiboken6.delete(engine)
-    print("Qt Quick OK: cliques, teclado, filtros, colunas, 3 larguras, switches e identificação progressiva simulada.")
+    print("Qt Quick OK: cliques, teclado, filtros, colunas, 3 larguras, switches, identificação progressiva e limite por IP simulados.")
 
 
 if __name__ == "__main__":

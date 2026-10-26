@@ -6,6 +6,8 @@ import socket
 from threading import BoundedSemaphore, Lock
 import time
 
+from ip_scanner_helper.application.errors import ProbeTimeout
+
 DEFAULT_TCP_PORTS = {
     21: "FTP", 22: "SSH", 23: "Telnet", 53: "DNS", 80: "HTTP", 443: "HTTPS",
     445: "SMB", 5060: "SIP-VoIP", 515: "LPD-Print", 3389: "RDP",
@@ -45,7 +47,7 @@ _PENDING = {errno.EINPROGRESS, errno.EWOULDBLOCK, errno.EALREADY, errno.EINTR,
 
 
 def scan_tcp_ports(ip, ports=None, timeout=.2, cancel_event=None, *, budget=None,
-                   socket_factory=None, selector_factory=None):
+                   socket_factory=None, selector_factory=None, context=None):
     """Keep the full port profile; waiting for capacity does not expire a probe.
 
     Each connect gets its timeout after admission. At most 13 connects per host
@@ -79,9 +81,13 @@ def scan_tcp_ports(ip, ports=None, timeout=.2, cancel_event=None, *, budget=None
 
         try:
             while next_port is not None or pending:
+                if context is not None:
+                    context.check()
                 if cancelled():
                     break
                 while next_port is not None and len(pending) < 13 and not cancelled():
+                    if context is not None:
+                        context.check()
                     # Read a port only after a slot exists, so none is skipped.
                     if not budget.acquire():
                         break
@@ -97,7 +103,7 @@ def scan_tcp_ports(ip, ports=None, timeout=.2, cancel_event=None, *, budget=None
                             opened.add(port)
                         elif result in _PENDING:
                             selector.register(sock, selectors.EVENT_WRITE, port)
-                            pending[sock] = time.monotonic() + timeout
+                            pending[sock] = time.monotonic() + (context.timeout(timeout) if context is not None else timeout)
                             admitted = True
                     except OSError:
                         # A failed connect is not evidence of an open service.
@@ -111,6 +117,8 @@ def scan_tcp_ports(ip, ports=None, timeout=.2, cancel_event=None, *, budget=None
                                 budget.release()
                 if pending:
                     delay = max(0, min(.025, min(pending.values()) - time.monotonic()))
+                    if context is not None:
+                        delay = context.timeout(max(.000001, delay))
                     for key, _ in selector.select(delay):
                         if cancelled():
                             break
@@ -127,10 +135,20 @@ def scan_tcp_ports(ip, ports=None, timeout=.2, cancel_event=None, *, budget=None
                             retire(sock)
                 elif next_port is not None and not cancelled():
                     if cancel_event is not None:
-                        cancel_event.wait(.01)
+                        cancel_event.wait(context.timeout(.01) if context is not None else .01)
                     else:
-                        time.sleep(.01)
+                        time.sleep(context.timeout(.01) if context is not None else .01)
+        except ProbeTimeout as exc:
+            exc.partial = [f"{service}({port})" for port, service in ports.items() if port in opened]
+            raise
         finally:
             for sock in list(pending):
                 retire(sock)
-    return [f"{service}({port})" for port, service in ports.items() if port in opened]
+    result = [f"{service}({port})" for port, service in ports.items() if port in opened]
+    if context is not None:
+        try:
+            context.check()
+        except ProbeTimeout as exc:
+            exc.partial = result
+            raise
+    return result

@@ -5,13 +5,11 @@ from datetime import datetime, timezone
 from threading import Lock
 import time
 
+from ip_scanner_helper.application.errors import ProbeTimeout, ScanCancelled, TargetBudgetExceeded
+
 PROBES = ("arp", "icmp", "tcp", "snmp", "dns_ptr", "netbios", "pjl", "onvif",
           "http", "sip", "rdp", "ssh", "ftp", "tls", "ssdp")
-OUTCOMES = ("result", "no_result", "error", "cancelled", "not_run")
-
-
-class ScanCancelled(Exception):
-    """Cooperative cancellation between bounded network operations."""
+OUTCOMES = ("result", "no_result", "error", "cancelled", "timeout", "budget_exhausted", "not_run")
 
 
 @dataclass(frozen=True)
@@ -70,6 +68,12 @@ class ProbeRecorder:
             return value
         except ScanCancelled:
             outcome = "cancelled"
+            raise
+        except TargetBudgetExceeded:
+            outcome = "budget_exhausted"
+            raise
+        except ProbeTimeout:
+            outcome = "timeout"
             raise
         finally:
             if self.observer:

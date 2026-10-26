@@ -5,9 +5,55 @@ from unittest.mock import patch
 
 from ip_scanner_helper.bootstrap import create_scan_service
 from ip_scanner_helper.application.scanner import ScanOptions, ScanCancelled
+from ip_scanner_helper.application.errors import ScanIncomplete, TargetBudgetExceeded
 
 
 class ServiceTests(unittest.TestCase):
+    def test_late_inconclusive_completion_after_user_cancel_is_discarded(self):
+        entered, release = Event(), Event()
+
+        def worker(*args):
+            entered.set()
+            release.wait(2)
+            raise ScanIncomplete("Limite por IP", {"dns_ptr": "tempo"})
+
+        service = create_scan_service(worker=worker)
+        service.start(["192.0.2.1"], ScanOptions(workers=1))
+        try:
+            self.assertTrue(entered.wait(1))
+            service.cancel()
+        finally:
+            release.set()
+        events = self.finish(service)
+        self.assertFalse(any(event.kind == "incomplete" for event in events))
+        self.assertEqual(events[-1].payload["completed"], 0)
+        self.assertEqual(events[-1].payload["limited_targets"], 0)
+
+    def test_target_budget_without_presence_is_inconclusive_and_not_an_error(self):
+        with patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.obter_mac_e_presenca_windows",
+                   side_effect=TargetBudgetExceeded()):
+            service = create_scan_service()
+            service.start(["192.0.2.1"], ScanOptions(workers=1))
+            events = self.finish(service)
+        self.assertFalse(any(event.kind == "device" for event in events))
+        self.assertEqual(events[-1].payload["completed"], 1)
+        self.assertEqual(events[-1].payload["errors"], 0)
+        self.assertEqual(events[-1].payload["limited_targets"], 1)
+        self.assertEqual(next(event for event in events if event.kind == "incomplete").payload["ip"], "192.0.2.1")
+
+    def test_partial_presence_is_retained_and_budget_is_reported_without_error(self):
+        with patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.obter_mac_e_presenca_windows", return_value=(None, True)), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.ping_measurement", side_effect=TargetBudgetExceeded()):
+            service = create_scan_service()
+            service.start(["192.0.2.1"], ScanOptions(workers=1))
+            events = self.finish(service)
+        devices = [event.payload["device"] for event in events if event.kind == "device"]
+        self.assertEqual(len(devices), 2)
+        self.assertFalse(devices[-1]["coleta_completa"])
+        self.assertEqual(devices[-1]["motivo_coleta_incompleta"], "tempo")
+        self.assertEqual(events[-1].payload["errors"], 0)
+        self.assertEqual(events[-1].payload["limited_targets"], 1)
+
     def setUp(self):
         self.cache = patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.carregar_arp_cache", return_value={})
         self.cache.start()
@@ -73,7 +119,7 @@ class ServiceTests(unittest.TestCase):
 
     def test_presence_is_published_before_slow_dns_and_completion_is_not_premature(self):
         entered, release = Event(), Event()
-        def dns(*args):
+        def dns(*args, **kwargs):
             entered.set()
             release.wait(2)
             return "host.example"
@@ -103,7 +149,7 @@ class ServiceTests(unittest.TestCase):
 
     def test_cancel_after_early_result_keeps_that_observation_but_discards_late_enrichment(self):
         entered, release = Event(), Event()
-        def dns(*args):
+        def dns(*args, **kwargs):
             entered.set()
             release.wait(2)
             return "late.example"

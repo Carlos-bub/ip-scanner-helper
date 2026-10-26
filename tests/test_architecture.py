@@ -78,14 +78,14 @@ from ip_scanner_helper.application.scanner import scan_device
 from ip_scanner_helper.application.scan_service import ScanService
 assert not any(name.startswith(('PySide6', 'ip_scanner_helper.infrastructure')) for name in sys.modules)
 """
-        result = subprocess.run([sys.executable, "-I", "-B", "-c", code],
-                                capture_output=True, text=True, timeout=10)
+        result = subprocess.run([sys.executable, "-I", "-X", "utf8", "-B", "-c", code],
+                                capture_output=True, text=True, encoding="utf-8", timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_installed_cli_works_outside_the_repository(self):
         with tempfile.TemporaryDirectory() as directory:
-            result = subprocess.run([sys.executable, "-I", "-B", "-m", PREFIX, "--help"],
-                                    cwd=directory, capture_output=True, text=True, timeout=10)
+            result = subprocess.run([sys.executable, "-I", "-X", "utf8", "-B", "-m", PREFIX, "--help"],
+                                    cwd=directory, capture_output=True, text=True, encoding="utf-8", timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--demo", result.stdout)
         self.assertIn("--self-check", result.stdout)

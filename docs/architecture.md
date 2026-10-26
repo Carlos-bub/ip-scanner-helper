@@ -39,9 +39,11 @@ flowchart LR
 
 `ScanService` agenda até duas vezes o número de workers em tarefas pendentes. A lista de endereços é validada antes da alocação e possui limite de 4.096 destinos. Assim, a aplicação não materializa uma rede `/8` e não cria uma fila ilimitada de futures.
 
+`ScanTimeouts` centraliza os limites de coleta e é parte das opções imutáveis. `ProbeContext` transporta prazos monotônicos e cancelamento até os adaptadores. O orçamento começa no worker do IP; fila e preparação da sessão ficam fora dele. Consulte [prazos e DNS reverso](scan-timeouts.md) para os limites cooperativos, resultados inconclusivos e liberação de callbacks tardias.
+
 Cada execução recebe um identificador próprio e seu próprio evento de cancelamento. O serviço não aceita sobreposição. O consumidor descarta eventos de outras sessões. A parada cancela tarefas pendentes e solicita cancelamento às demais entre as operações de rede. Ela não interrompe uma função nativa no meio da chamada.
 
-Todas as exceções das futures são lidas e transformadas em eventos de erro. A conclusão informa endereços analisados, total, erros e estado de cancelamento. Nenhuma parada é promovida artificialmente a 100%.
+Todas as exceções das futures são lidas e transformadas em eventos de erro. A conclusão informa endereços analisados, total, erros, coletas incompletas e estado de cancelamento. Um esgotamento de tempo sem presença confirmada produz um evento `incomplete`, separado de um dispositivo confirmado ou erro. Nenhuma parada é promovida artificialmente a 100%.
 
 Um `QTimer` do `ScannerController` consome até 200 eventos de varredura e 20 conclusões auxiliares por ciclo. Apenas a thread principal altera o estado Qt e o modelo da tabela. Tarefas auxiliares entregam dados por fila, com tokens que descartam resultados substituídos. A interface declara seus vínculos em QML e não executa sondas de rede.
 

@@ -136,14 +136,16 @@ def build_request(oid, community="public", version=1, request_id=101, next_oid=F
                       + encode_tlv(4, community.encode("utf-8")) + pdu)
 
 
-def query(ip, oid, community="public", version=1, timeout=0.5, next_oid=False):
+def query(ip, oid, community="public", version=1, timeout=0.5, next_oid=False, *, context=None):
     request_id = secrets.randbelow(2**30)
     packet = build_request(oid, community, version, request_id, next_oid)
     # A connected UDP socket only accepts datagrams from the selected endpoint.
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-        sock.settimeout(timeout)
+        sock.settimeout(context.timeout(timeout) if context is not None else timeout)
         sock.connect((ip, 161))
         sock.send(packet)
+        if context is not None:
+            sock.settimeout(context.timeout(timeout))
         response = parse_response(sock.recv(65535))
     if (response.request_id != request_id or response.version != version
             or response.community != community.encode("utf-8")):
