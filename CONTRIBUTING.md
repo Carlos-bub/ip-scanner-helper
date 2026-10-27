@@ -19,10 +19,13 @@ python -m venv .venv
 .venv\Scripts\python.exe scripts/smoke_ui.py
 .venv\Scripts\python.exe scripts/smoke_preferences.py
 .venv\Scripts\python.exe scripts/smoke_vault.py
+.venv\Scripts\python.exe scripts/smoke_topology.py
 git diff --check
 ```
 
 Os testes de domínio, aplicação, infraestrutura e apresentação ficam em pastas correspondentes. `tests/test_architecture.py` verifica os limites de importação, ciclos e execução do pacote instalado fora do repositório. O smoke test usa QML real e sondas simuladas; requer sessão gráfica.
+
+O teste do mapa usa Node.js 24 e Edge/Chrome headless instalados localmente, sem dependências npm. Ele abre somente HTML com dados fictícios, em um perfil temporário, e verifica expansão, árvore/malha, paginação, busca, teclado, contexto, segurança e layout até 4.096 registros. `MAP_BROWSER` permite indicar outro caminho para Edge/Chrome; `--capture` atualiza as imagens públicas. Node e o navegador não são dependências do executável Python; o mapa exportado abre no navegador padrão.
 
 Inclua testes que exercitem o comportamento alterado e atualize a documentação correspondente. Preserve as evidências dos dispositivos, a identidade das linhas por IP e o isolamento entre sessões de varredura. Uma ausência de resposta ICMP não permite descartar os outros métodos de presença.
 

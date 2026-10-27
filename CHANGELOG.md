@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.9 — 2026-10-27
+
+- Mapa offline com cabeçalho compacto, árvore como visão inicial e foco no ramo selecionado; zoom animado, pan, enquadramento e navegação sequencial entre switches.
+- Painel de dispositivos por switch com categorias, busca, paginação e evidências; retorno à visão geral, estados do inventário e exemplo separado com estados fictícios.
+- Grupos recolhíveis por categoria ou observador, malha e paginação para grandes inventários; posições calculadas sem sobreposição entre grupos de alturas diferentes.
+- Relações separadas da geometria; caminhos FDB preservados, inclusive múltiplas portas e observadores externos, sem criar hierarquia física a partir do gateway.
+- Exportações Draw.io/XML e DOT pelo aplicativo, com containers, referências e metadados; texto seguro e inventário completo independente dos filtros.
+- Exemplo JSON com 129 equipamentos, gateway, servidores e seis switches; HTML autocontido e capturas reproduzíveis.
+- 227 testes de regressão e teste de navegador com 11 cenários até 4.096 registros. LLDP/CDP e VLANs ficam para a próxima etapa.
+
 ## 2.0.8 — 2026-10-27
 
 - Controle do início de coletores por segundo em Preferências → Coleta, compartilhado entre os IPs da sessão; padrão desativado e valores de 1 a 1.000 quando habilitado.

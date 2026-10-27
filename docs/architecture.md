@@ -79,9 +79,9 @@ Certificados são lidos pela estrutura do subject ASN.1, sem confundir o CN do e
 
 ## Mapas e exportações
 
-`domain/topology.py` modela agrupamentos lógicos e caminhos aprendidos em tabelas MAC. Não cria switches fictícios ou distribui hosts arbitrariamente entre switches. Uma observação FDB não prova adjacência física direta.
+`domain/topology.py` modela agrupamentos lógicos e caminhos FDB sem posições. Tipos de relação distinguem agrupamento, FDB e vizinhança reportada (reservada ao futuro coletor). Não cria switches fictícios nem escolhe um pai entre vários observadores. Gateway é contexto; FDB não prova adjacência física direta. Estados fictícios e hierarquia explícita pertencem a `demo_topology.json`, separado dos dados coletados.
 
-O HTML incorpora o template instalado de `resources/templates/topology.html`, compartilhado sem depender de Qt, e JSON escapado contra fechamento de `script`. O JavaScript usa `textContent` e elementos SVG criados pela API do DOM, sem inserir dados coletados em `innerHTML`. Não há recursos de CDN. O mapa permite filtro, busca, pan, zoom e seleção por teclado.
+O HTML incorpora o template instalado de `resources/templates/topology.html`, compartilhado sem depender de Qt, e JSON escapado contra fechamento de `script`. O JavaScript usa `textContent` e elementos SVG criados pela API do DOM, sem inserir dados coletados em `innerHTML`. Não há recursos de CDN. `topology-layout.js` calcula a geometria de grupos, árvore e malha; `topology-map.js` mantém seleção, paginação, painel e câmera. O mapa permite busca, filtro, pan, foco animado e teclado; mudanças de posição não alteram as relações. Grupos e equipamentos são paginados para não renderizar milhares de cartões ao abrir. O exemplo e as exportações permanecem autocontidos. `diagram_export.py` gera XML Draw.io e DOT a partir do mesmo modelo, sem depender do estado visual do navegador. Ver [contratos e limites](topology.md).
 
 CSV neutraliza células que poderiam ser interpretadas como fórmulas. Listas e dicionários são serializados como JSON nas células. A exportação JSON mantém os tipos e campos de evidência.
 

@@ -66,3 +66,4 @@ class DesktopServices:
     export_json: Callable[[str | Path, list[dict]], None]
     render_map: Callable[[list[dict], str | None], str]
     switch_mapper: SwitchMapper
+    export_diagram: Callable[[str | Path, list[dict], str | None, str], None]

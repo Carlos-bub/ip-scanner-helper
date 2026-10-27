@@ -31,7 +31,7 @@ def application_fingerprint():
         digest.update(path.relative_to(ROOT).as_posix().encode("utf-8"))
         digest.update(b"\0")
         digest.update(path.read_bytes().replace(b"\r\n", b"\n")
-                      if path.suffix in {".py", ".spec", ".toml", ".qml", ".html", ".json"}
+                      if path.suffix in {".py", ".spec", ".toml", ".qml", ".html", ".json", ".js"}
                       else path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()

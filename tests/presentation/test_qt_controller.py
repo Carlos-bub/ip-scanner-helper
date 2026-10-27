@@ -1,9 +1,11 @@
 """Desktop presentation contracts; all data and service events are local."""
 
 from pathlib import Path
+from datetime import datetime
 from queue import Queue
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from PySide6.QtCore import QCoreApplication, QModelIndex, QPersistentModelIndex, Qt
 
@@ -28,6 +30,17 @@ class FakeService:
 
 
 class QtControllerTests(unittest.TestCase):
+    def test_drawio_save_dialog_exports_editable_xml_with_the_inventory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            destination = Path(directory) / "rede.drawio"
+            with patch("ip_scanner_helper.presentation.qt_controller.QFileDialog.getSaveFileName",
+                       return_value=(str(destination), "")) as dialog:
+                self.controller.export("drawio")
+            self.assertIn("*.drawio *.xml", dialog.call_args.args[3])
+            document = destination.read_text(encoding="utf-8")
+            self.assertIn("<mxfile", document)
+            self.assertIn("192.0.2.11", document)
+
     def test_target_timeout_is_captured_in_immutable_options(self):
         c = self.live()
         c.startScan("public", 4, 5.0)
@@ -194,6 +207,8 @@ class QtControllerTests(unittest.TestCase):
         observation = host["switch_observations"][0]
         self.assertFalse(observation["direct_link_confirmed"])
         self.assertEqual(observation["port"], "Gi1/0/1")
+        self.assertEqual(observation["source"], "Mapeamento de portas")
+        self.assertIsNotNone(datetime.fromisoformat(observation["observed_at"]))
         self.assertIn("parcial", c.state["switchStatus"])
         self.assertEqual(c.state["switchRows"][0]["ip"], host["ip"])
 
@@ -201,7 +216,7 @@ class QtControllerTests(unittest.TestCase):
         c = self.controller
         c.search("IMPRESSORA")
         with tempfile.TemporaryDirectory() as directory:
-            for kind in ("csv", "json", "html"):
+            for kind in ("csv", "json", "html", "drawio", "xml", "dot"):
                 path = Path(directory) / f"inventory.{kind}"
                 c.export_to(path, kind)
                 content = path.read_text(encoding="utf-8-sig")

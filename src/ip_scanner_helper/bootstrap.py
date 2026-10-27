@@ -5,6 +5,7 @@ from ip_scanner_helper.application.scan_service import ScanService
 from ip_scanner_helper.application.scanner import scan_device
 from ip_scanner_helper.infrastructure.exporters import export_csv, export_json
 from ip_scanner_helper.infrastructure.html_topology import gerar_html_topologia_interativa
+from ip_scanner_helper.infrastructure.diagram_export import export_diagram
 from ip_scanner_helper.infrastructure.network.interfaces import discover_interfaces
 from ip_scanner_helper.infrastructure.network.resolver import NetworkResolver
 from ip_scanner_helper.infrastructure.network.switch_port_mapper import SwitchPortMapper
@@ -32,4 +33,5 @@ def create_desktop_services():
         export_json=export_json,
         render_map=gerar_html_topologia_interativa,
         switch_mapper=SwitchPortMapper(),
+        export_diagram=export_diagram,
     )

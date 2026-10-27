@@ -31,6 +31,7 @@ a = Analysis(
     datas=[(str(PACKAGE / 'presentation/assets'), 'ip_scanner_helper/presentation/assets'),
            (str(PACKAGE / 'presentation/qml'), 'ip_scanner_helper/presentation/qml'),
            (str(PACKAGE / 'resources/demo_inventory.json'), 'ip_scanner_helper/resources'),
+           (str(PACKAGE / 'resources/demo_topology.json'), 'ip_scanner_helper/resources'),
            (str(PACKAGE / 'resources/templates'), 'ip_scanner_helper/resources/templates'),
            (str(ROOT / 'docs/licenses'), 'licenses'), (str(ROOT / 'THIRD_PARTY_NOTICES.md'), '.')],
     hiddenimports=['PySide6.QtQuick'],

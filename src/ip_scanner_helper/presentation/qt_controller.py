@@ -601,12 +601,23 @@ class ScannerController(QObject):
             self.desktop.export_json(path, self.devices)
         elif kind == "html":
             Path(path).write_text(self.desktop.render_map(self.devices, self._inventory_gateway), encoding="utf-8")
+        elif kind in ("drawio", "xml", "dot"):
+            self.desktop.export_diagram(path, self.devices, self._inventory_gateway, kind)
+        else:
+            raise ValueError("Formato de exportação inválido.")
 
     @Slot(str)
     def export(self, kind):
         if not self.devices:
             return
-        path, _ = QFileDialog.getSaveFileName(None, "Exportar inventário", f"inventario_rede.{kind}", f"{kind.upper()} (*.{kind})")
+        formats = {"csv": ("inventario_rede.csv", "CSV (*.csv)"), "json": ("inventario_rede.json", "JSON (*.json)"),
+                   "html": ("topologia_rede.html", "HTML offline (*.html)"),
+                   "drawio": ("topologia_rede.drawio", "Draw.io / Diagrams.net (*.drawio *.xml)"),
+                   "dot": ("topologia_rede.dot", "Graphviz (*.dot)")}
+        if kind not in formats:
+            return
+        filename, file_filter = formats[kind]
+        path, _ = QFileDialog.getSaveFileName(None, "Exportar inventário", filename, file_filter)
         if path:
             try:
                 self.export_to(path, kind)
@@ -639,7 +650,8 @@ class ScannerController(QObject):
         self._data.update(switchBusy=True, switchRows=[], switchIp=ip, switchTitle=self._data["selected"].get("nome", ip), switchStatus="Consultando interfaces e tabelas MAC…")
         records = [dict(d) for d in self.devices]
         self._publish()
-        self._async("switch", lambda: self.desktop.switch_mapper.mapear_switch(ip, captured_community, records), self._received_switch)
+        self._async("switch", lambda: self.desktop.switch_mapper.mapear_switch(ip, captured_community, records),
+                    lambda ports, error: self._received_switch(ports, error, source="Tabela MAC via SNMP"))
 
     @Slot(str)
     def importMacTable(self, text):
@@ -647,7 +659,7 @@ class ScannerController(QObject):
             return
         try:
             ports = self.desktop.switch_mapper.mapear_por_texto(text, self.devices)
-            self._received_switch(ports, None)
+            self._received_switch(ports, None, source="Tabela MAC importada de texto")
         except ValueError as exc:
             self.notice.emit("Tabela inválida", str(exc))
 
@@ -662,14 +674,16 @@ class ScannerController(QObject):
         records = [dict(d) for d in self.devices]
         self._data.update(switchBusy=True, switchStatus="Coletando tabela via Telnet…")
         self._publish()
-        self._async("switch", lambda: self.desktop.switch_mapper.mapear_por_telnet(ip, user, password, port, records), self._received_switch)
+        self._async("switch", lambda: self.desktop.switch_mapper.mapear_por_telnet(ip, user, password, port, records),
+                    lambda ports, error: self._received_switch(ports, error, source="Tabela MAC via Telnet"))
 
-    def _received_switch(self, ports, error):
+    def _received_switch(self, ports, error, *, source="Mapeamento de portas"):
         self._data["switchBusy"] = False
         if error:
             self._data["switchStatus"] = "Falha na consulta. Verifique o log e as credenciais."
             return
         rows = []
+        observed_at = datetime.now().astimezone().isoformat()
         ip = self._data["switchIp"]
         for device in self.devices:
             device["switch_observations"] = [item for item in device.get("switch_observations", []) if item.get("switch_ip") != ip]
@@ -678,7 +692,8 @@ class ScannerController(QObject):
             for mac in port.get("macs", []):
                 host = hosts_by_mac.get(mac.upper().replace("-", ":"))
                 if host:
-                    host.setdefault("switch_observations", []).append({"switch_ip": ip, "port": port["nome"], "direct_link_confirmed": False})
+                    host.setdefault("switch_observations", []).append({"switch_ip": ip, "port": port["nome"],
+                        "direct_link_confirmed": False, "source": source, "observed_at": observed_at})
             for host in port.get("hosts") or [{}]:
                 rows.append({"port": port["nome"], "status": port["status"], "mac": host.get("mac", "—"),
                              "host": host.get("nome", "Nenhum MAC aprendido"), "ip": host.get("ip", "—")})

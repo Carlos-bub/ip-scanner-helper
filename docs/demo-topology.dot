@@ -1,0 +1,31 @@
+digraph inventory {
+  graph [charset="UTF-8", rankdir=TB, compound=true, labelloc=t, label="Inventário · agrupamento lógico\nGateway informado: 192.0.2.1\nFDB: caminho aprendido; vínculo físico direto não confirmado"];
+  node [shape=box, style="rounded", fontname="Arial", fontsize=11];
+  edge [style=dashed, color="#557d80", fontname="Arial", fontsize=10, constraint=false];
+  subgraph cluster_0 {
+    label="Infraestrutura"; color="#dce3e8";
+    "192.0.2.2" [label="SW-LAB-01\n192.0.2.2\nSwitch", tooltip="nome: SW-LAB-01\nip: 192.0.2.2\nmac: 02:00:00:00:00:02\ntipo: Switch\nfabricante: Fabricante fictício\nlatencia: 1 ms\norigem: SNMP simulado\nconfianca: Alta\nevidencia_categoria: Descrição SNMP simulada: Managed switch\nstatus: Demonstração — dados fictícios\nvisto_em: Não disponível", color="#356a78"];
+  }
+  subgraph cluster_1 {
+    label="Estações / servidores"; color="#dce3e8";
+    "192.0.2.10" [label="ESTACAO-DESIGN\n192.0.2.10\nEstação / Servidor", tooltip="nome: ESTACAO-DESIGN\nip: 192.0.2.10\nmac: 02:00:00:00:00:10\ntipo: Estação / Servidor\nfabricante: Fabricante fictício\nlatencia: < 1 ms\norigem: DNS simulado\nconfianca: Baixa\nevidencia_categoria: Serviços RDP/SMB; função não confirmada\nstatus: Demonstração — dados fictícios\nvisto_em: Não disponível", color="#526577"];
+  }
+  subgraph cluster_2 {
+    label="Impressoras"; color="#dce3e8";
+    "192.0.2.11" [label="IMPRESSORA-LAB\n192.0.2.11\nImpressora", tooltip="nome: IMPRESSORA-LAB\nip: 192.0.2.11\nmac: 02:00:00:00:00:11\ntipo: Impressora\nfabricante: Fabricante fictício\nlatencia: 2 ms\norigem: PJL simulado\nconfianca: Alta\nevidencia_categoria: Modelo PJL simulado\nstatus: Demonstração — dados fictícios\nvisto_em: Não disponível", color="#896b46"];
+  }
+  subgraph cluster_3 {
+    label="CFTV"; color="#dce3e8";
+    "192.0.2.12" [label="CAMERA-ENTRADA\n192.0.2.12\nCFTV", tooltip="nome: CAMERA-ENTRADA\nip: 192.0.2.12\nmac: 02:00:00:00:00:12\ntipo: CFTV\nfabricante: Fabricante fictício\nlatencia: Não medida\norigem: ONVIF simulado\nconfianca: Alta\nevidencia_categoria: Resposta ONVIF simulada\nstatus: Demonstração — dados fictícios\nvisto_em: Não disponível", color="#8b5d60"];
+  }
+  subgraph cluster_4 {
+    label="Telefonia IP"; color="#dce3e8";
+    "192.0.2.13" [label="TELEFONE-LAB\n192.0.2.13\nTelefonia IP", tooltip="nome: TELEFONE-LAB\nip: 192.0.2.13\nmac: 02:00:00:00:00:13\ntipo: Telefonia IP\nfabricante: Fabricante fictício\nlatencia: 3 ms\norigem: SIP simulado\nconfianca: Alta\nevidencia_categoria: Resposta SIP simulada\nstatus: Demonstração — dados fictícios\nvisto_em: Não disponível", color="#7c7650"];
+  }
+  subgraph cluster_5 {
+    label="Não identificados"; color="#dce3e8";
+    "192.0.2.14" [label="Dispositivo ativo\n192.0.2.14\nDispositivo não identificado", tooltip="nome: Dispositivo ativo\nip: 192.0.2.14\nmac: 02:00:00:00:00:14\ntipo: Dispositivo não identificado\nfabricante: MAC local / privado (fabricante indeterminado)\nlatencia: Não medida\norigem: Detecção simulada\nconfianca: Baixa\nevidencia_categoria: Evidências insuficientes para definir categoria\nstatus: Demonstração — dados fictícios\nvisto_em: Não disponível", color="#727b88"];
+  }
+  "192.0.2.2" -> "192.0.2.10" [label="FDB · Gi1/0/4", tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/4; vínculo direto não confirmado\nOrigem da observação não registrada · Instante não registrado", kind="fdb_path"];
+  "192.0.2.2" -> "192.0.2.11" [label="FDB · Gi1/0/8", tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/8; vínculo direto não confirmado\nOrigem da observação não registrada · Instante não registrado", kind="fdb_path"];
+}

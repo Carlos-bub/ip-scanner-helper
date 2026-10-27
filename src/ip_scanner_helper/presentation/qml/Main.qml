@@ -56,6 +56,9 @@ ApplicationWindow {
         MenuItem { text: "Inventário em CSV"; onTriggered: scanner.export("csv") }
         MenuItem { text: "Inventário em JSON"; onTriggered: scanner.export("json") }
         MenuItem { text: "Mapa HTML offline"; onTriggered: scanner.export("html") }
+        MenuSeparator {}
+        MenuItem { objectName: "exportDrawio"; text: "Diagrama Draw.io (.drawio / .xml)"; onTriggered: scanner.export("drawio") }
+        MenuItem { objectName: "exportDot"; text: "Diagrama Graphviz (.dot)"; onTriggered: scanner.export("dot") }
     }
 
     ColumnLayout {

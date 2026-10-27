@@ -77,6 +77,8 @@ Em **Cofre SNMP**, cadastre a comunidade e selecione **Usar na próxima coleta**
 
 Selecione uma linha e use **Detalhes**, duplo clique ou `Enter` para abrir o painel lateral. Apenas selecionar uma linha mantém a tabela inteira visível. As abas distinguem a origem do nome da confiança da categoria. Use **Colunas** para escolher os campos; IP e nome permanecem disponíveis. Arraste a borda do cabeçalho para ajustar larguras. O botão direito reúne as ações de cópia, acesso e mapeamento de portas. Atalhos: `Ctrl+F` busca, setas navegam, `Enter` abre detalhes e `Esc` limpa os filtros. Veja os [detalhes sob demanda](docs/desktop-details.png), a [janela compacta](docs/desktop-compact.png) e o [mapeamento de switch](docs/desktop-switch.png).
 
+O **Mapa da rede** abre em árvore, com foco animado no switch, painel pesquisável de dispositivos, **Próximo switch** e **Visão geral**. Grupos e malha permanecem disponíveis; caminhos FDB não comprovam cabos. O menu **Exportar** inclui Draw.io/XML e Graphviz/DOT. Veja o [guia do mapa](docs/topology.md), a [visão geral](docs/topology-overview.png) e o [exemplo interativo com 129 equipamentos fictícios](docs/demo-topology-tree.html).
+
 O modo **Rápido** verifica presença, portas TCP comuns, SNMP, DNS e NetBIOS. O modo **Completo** acrescenta as sondas de identificação especializadas. O inventário exibe apenas equipamentos com resposta atual a pelo menos um dos métodos de presença.
 
 O botão Parar solicita o cancelamento cooperativo. O DNS nativo aceita solicitação de cancelamento; demais consultas encerram nos pontos de verificação ou no timeout restante. Chamadas nativas como `SendARP` podem ultrapassar o prazo antes de retornar; a aplicação só libera uma nova varredura após a anterior encerrar. Resultados de sessões antigas são descartados. Consulte os [contratos de tempo e DNS reverso](docs/scan-timeouts.md).
@@ -98,7 +100,7 @@ O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, 
 
 ## Gerar o executável
 
-A [validação 2.0.8](docs/validation-2.0.8.md) registra taxa, cancelamento e migração. A [validação 2.0.7](docs/validation-2.0.7.md) registra cofre, DPAPI e privacidade. A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migração; a [validação 2.0.5](docs/validation-2.0.5.md), a base de persistência e contexto de rede.
+A [validação 2.0.9](docs/validation-2.0.9.md) registra mapa, navegação e diagramas. A [validação 2.0.8](docs/validation-2.0.8.md) registra taxa, cancelamento e migração. A [validação 2.0.7](docs/validation-2.0.7.md) registra cofre, DPAPI e privacidade. A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migração; a [validação 2.0.5](docs/validation-2.0.5.md), a base de persistência e contexto de rede.
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -e ".[build]"
@@ -106,11 +108,11 @@ A [validação 2.0.8](docs/validation-2.0.8.md) registra taxa, cancelamento e mi
 .venv\Scripts\python.exe scripts/package_release.py
 ```
 
-Saída: `dist/portfolio/2.0.8/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
+Saída: `dist/portfolio/2.0.9/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
 
 ```powershell
-dist\portfolio\2.0.8\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
-dist\portfolio\2.0.8\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
+dist\portfolio\2.0.9\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
+dist\portfolio\2.0.9\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
 ```
 
 Para gerar os artefatos públicos da demonstração:

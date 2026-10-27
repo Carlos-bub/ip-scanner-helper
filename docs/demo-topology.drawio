@@ -1,0 +1,170 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="IP Scanner Helper" compressed="false">
+  <diagram id="category" name="Categorias">
+    <mxGraphModel grid="1" gridSize="10" tooltips="1" fold="1" page="0" pageWidth="2100" pageHeight="544" connect="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <object id="gateway-context" label="Gateway informado: 192.0.2.1&#10;Referência da interface; sem ligação presumida" tooltip="Não estabelece presença nem relação física com os switches." kind="gateway_context" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#316c5a;">
+            <mxGeometry as="geometry" x="24" y="20" width="640" height="80" />
+          </mxCell>
+        </object>
+        <object id="group-0" label="Infraestrutura · 1" tooltip="Agrupamento pela categoria do inventário" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="24" y="150" width="640" height="158">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-0-node-192.0.2.2" label="SW-LAB-01&#10;192.0.2.2&#10;Switch" tooltip="nome: SW-LAB-01&#10;ip: 192.0.2.2&#10;mac: 02:00:00:00:00:02&#10;tipo: Switch&#10;fabricante: Fabricante fictício&#10;latencia: 1 ms&#10;origem: SNMP simulado&#10;confianca: Alta&#10;evidencia_categoria: Descrição SNMP simulada: Managed switch&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device" ip="192.0.2.2">
+          <mxCell vertex="1" parent="group-0" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#356a78;">
+            <mxGeometry as="geometry" x="16" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-1" label="Estações / servidores · 1" tooltip="Agrupamento pela categoria do inventário" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="688" y="150" width="640" height="158">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-1-node-192.0.2.10" label="ESTACAO-DESIGN&#10;192.0.2.10&#10;Estação / Servidor" tooltip="nome: ESTACAO-DESIGN&#10;ip: 192.0.2.10&#10;mac: 02:00:00:00:00:10&#10;tipo: Estação / Servidor&#10;fabricante: Fabricante fictício&#10;latencia: &amp;lt; 1 ms&#10;origem: DNS simulado&#10;confianca: Baixa&#10;evidencia_categoria: Serviços RDP/SMB; função não confirmada&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device" ip="192.0.2.10">
+          <mxCell vertex="1" parent="group-1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#526577;">
+            <mxGeometry as="geometry" x="16" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-2" label="Impressoras · 1" tooltip="Agrupamento pela categoria do inventário" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="1352" y="150" width="640" height="158">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-2-node-192.0.2.11" label="IMPRESSORA-LAB&#10;192.0.2.11&#10;Impressora" tooltip="nome: IMPRESSORA-LAB&#10;ip: 192.0.2.11&#10;mac: 02:00:00:00:00:11&#10;tipo: Impressora&#10;fabricante: Fabricante fictício&#10;latencia: 2 ms&#10;origem: PJL simulado&#10;confianca: Alta&#10;evidencia_categoria: Modelo PJL simulado&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device" ip="192.0.2.11">
+          <mxCell vertex="1" parent="group-2" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#896b46;">
+            <mxGeometry as="geometry" x="16" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-3" label="CFTV · 1" tooltip="Agrupamento pela categoria do inventário" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="24" y="332" width="640" height="158">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-3-node-192.0.2.12" label="CAMERA-ENTRADA&#10;192.0.2.12&#10;CFTV" tooltip="nome: CAMERA-ENTRADA&#10;ip: 192.0.2.12&#10;mac: 02:00:00:00:00:12&#10;tipo: CFTV&#10;fabricante: Fabricante fictício&#10;latencia: Não medida&#10;origem: ONVIF simulado&#10;confianca: Alta&#10;evidencia_categoria: Resposta ONVIF simulada&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device" ip="192.0.2.12">
+          <mxCell vertex="1" parent="group-3" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#8b5d60;">
+            <mxGeometry as="geometry" x="16" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-4" label="Telefonia IP · 1" tooltip="Agrupamento pela categoria do inventário" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="688" y="332" width="640" height="158">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-4-node-192.0.2.13" label="TELEFONE-LAB&#10;192.0.2.13&#10;Telefonia IP" tooltip="nome: TELEFONE-LAB&#10;ip: 192.0.2.13&#10;mac: 02:00:00:00:00:13&#10;tipo: Telefonia IP&#10;fabricante: Fabricante fictício&#10;latencia: 3 ms&#10;origem: SIP simulado&#10;confianca: Alta&#10;evidencia_categoria: Resposta SIP simulada&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device" ip="192.0.2.13">
+          <mxCell vertex="1" parent="group-4" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#7c7650;">
+            <mxGeometry as="geometry" x="16" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-5" label="Não identificados · 1" tooltip="Agrupamento pela categoria do inventário" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="1352" y="332" width="640" height="158">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-5-node-192.0.2.14" label="Dispositivo ativo&#10;192.0.2.14&#10;Dispositivo não identificado" tooltip="nome: Dispositivo ativo&#10;ip: 192.0.2.14&#10;mac: 02:00:00:00:00:14&#10;tipo: Dispositivo não identificado&#10;fabricante: MAC local / privado (fabricante indeterminado)&#10;latencia: Não medida&#10;origem: Detecção simulada&#10;confianca: Baixa&#10;evidencia_categoria: Evidências insuficientes para definir categoria&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device" ip="192.0.2.14">
+          <mxCell vertex="1" parent="group-5" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#727b88;">
+            <mxGeometry as="geometry" x="16" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="path-0" label="FDB · Gi1/0/4" tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/4; vínculo direto não confirmado" kind="fdb_path" source="Origem da observação não registrada" observed_at="Instante não registrado" direct_link_confirmed="false">
+          <mxCell edge="1" parent="1" source="group-0-node-192.0.2.2" target="group-1-node-192.0.2.10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=0;dashed=1;strokeColor=#557d80;fontSize=10;endArrow=open;">
+            <mxGeometry as="geometry" relative="1" />
+          </mxCell>
+        </object>
+        <object id="path-1" label="FDB · Gi1/0/8" tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/8; vínculo direto não confirmado" kind="fdb_path" source="Origem da observação não registrada" observed_at="Instante não registrado" direct_link_confirmed="false">
+          <mxCell edge="1" parent="1" source="group-0-node-192.0.2.2" target="group-2-node-192.0.2.11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=0;dashed=1;strokeColor=#557d80;fontSize=10;endArrow=open;">
+            <mxGeometry as="geometry" relative="1" />
+          </mxCell>
+        </object>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="switch" name="Árvore FDB">
+    <mxGraphModel grid="1" gridSize="10" tooltips="1" fold="1" page="0" pageWidth="2100" pageHeight="500" connect="1" arrows="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <object id="gateway-context" label="Gateway informado: 192.0.2.1&#10;Referência da interface; sem ligação presumida" tooltip="Não estabelece presença nem relação física com os switches." kind="gateway_context" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#316c5a;">
+            <mxGeometry as="geometry" x="24" y="20" width="640" height="80" />
+          </mxCell>
+        </object>
+        <object id="group-0" label="Vistos por SW-LAB-01 · 2" tooltip="192.0.2.2 · Caminhos FDB" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="24" y="150" width="640" height="244">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-0-observer" label="SW-LAB-01&#10;192.0.2.2" tooltip="Observador FDB; vínculo físico direto não confirmado." kind="device_reference" ip="192.0.2.2">
+          <mxCell vertex="1" parent="group-0" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#356a78;">
+            <mxGeometry as="geometry" x="16" y="54" width="608" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-0-node-192.0.2.10" label="ESTACAO-DESIGN&#10;192.0.2.10&#10;Estação / Servidor" tooltip="nome: ESTACAO-DESIGN&#10;ip: 192.0.2.10&#10;mac: 02:00:00:00:00:10&#10;tipo: Estação / Servidor&#10;fabricante: Fabricante fictício&#10;latencia: &amp;lt; 1 ms&#10;origem: DNS simulado&#10;confianca: Baixa&#10;evidencia_categoria: Serviços RDP/SMB; função não confirmada&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device_reference" ip="192.0.2.10">
+          <mxCell vertex="1" parent="group-0" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#526577;">
+            <mxGeometry as="geometry" x="16" y="140" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-0-node-192.0.2.11" label="IMPRESSORA-LAB&#10;192.0.2.11&#10;Impressora" tooltip="nome: IMPRESSORA-LAB&#10;ip: 192.0.2.11&#10;mac: 02:00:00:00:00:11&#10;tipo: Impressora&#10;fabricante: Fabricante fictício&#10;latencia: 2 ms&#10;origem: PJL simulado&#10;confianca: Alta&#10;evidencia_categoria: Modelo PJL simulado&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device_reference" ip="192.0.2.11">
+          <mxCell vertex="1" parent="group-0" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#896b46;">
+            <mxGeometry as="geometry" x="224" y="140" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-1" label="Sem caminho FDB · 4" tooltip="Nenhuma associação registrada nesta coleta" kind="logical_group" ip="">
+          <mxCell vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#dce3e8;swimlane;startSize=40;collapsible=1;horizontal=1;">
+            <mxGeometry as="geometry" x="688" y="150" width="640" height="242">
+              <mxRectangle as="alternateBounds" width="640" height="50" />
+            </mxGeometry>
+          </mxCell>
+        </object>
+        <object id="group-1-node-192.0.2.2" label="SW-LAB-01&#10;192.0.2.2&#10;Switch" tooltip="nome: SW-LAB-01&#10;ip: 192.0.2.2&#10;mac: 02:00:00:00:00:02&#10;tipo: Switch&#10;fabricante: Fabricante fictício&#10;latencia: 1 ms&#10;origem: SNMP simulado&#10;confianca: Alta&#10;evidencia_categoria: Descrição SNMP simulada: Managed switch&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device_reference" ip="192.0.2.2">
+          <mxCell vertex="1" parent="group-1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#356a78;">
+            <mxGeometry as="geometry" x="16" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-1-node-192.0.2.12" label="CAMERA-ENTRADA&#10;192.0.2.12&#10;CFTV" tooltip="nome: CAMERA-ENTRADA&#10;ip: 192.0.2.12&#10;mac: 02:00:00:00:00:12&#10;tipo: CFTV&#10;fabricante: Fabricante fictício&#10;latencia: Não medida&#10;origem: ONVIF simulado&#10;confianca: Alta&#10;evidencia_categoria: Resposta ONVIF simulada&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device_reference" ip="192.0.2.12">
+          <mxCell vertex="1" parent="group-1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#8b5d60;">
+            <mxGeometry as="geometry" x="224" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-1-node-192.0.2.13" label="TELEFONE-LAB&#10;192.0.2.13&#10;Telefonia IP" tooltip="nome: TELEFONE-LAB&#10;ip: 192.0.2.13&#10;mac: 02:00:00:00:00:13&#10;tipo: Telefonia IP&#10;fabricante: Fabricante fictício&#10;latencia: 3 ms&#10;origem: SIP simulado&#10;confianca: Alta&#10;evidencia_categoria: Resposta SIP simulada&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device_reference" ip="192.0.2.13">
+          <mxCell vertex="1" parent="group-1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#7c7650;">
+            <mxGeometry as="geometry" x="432" y="54" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="group-1-node-192.0.2.14" label="Dispositivo ativo&#10;192.0.2.14&#10;Dispositivo não identificado" tooltip="nome: Dispositivo ativo&#10;ip: 192.0.2.14&#10;mac: 02:00:00:00:00:14&#10;tipo: Dispositivo não identificado&#10;fabricante: MAC local / privado (fabricante indeterminado)&#10;latencia: Não medida&#10;origem: Detecção simulada&#10;confianca: Baixa&#10;evidencia_categoria: Evidências insuficientes para definir categoria&#10;status: Demonstração — dados fictícios&#10;visto_em: Não disponível" kind="device_reference" ip="192.0.2.14">
+          <mxCell vertex="1" parent="group-1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;fontColor=#243342;fontSize=12;strokeColor=#727b88;">
+            <mxGeometry as="geometry" x="16" y="138" width="192" height="64" />
+          </mxCell>
+        </object>
+        <object id="path-0" label="FDB · Gi1/0/4" tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/4; vínculo direto não confirmado" kind="fdb_path" source="Origem da observação não registrada" observed_at="Instante não registrado" direct_link_confirmed="false">
+          <mxCell edge="1" parent="1" source="group-0-observer" target="group-0-node-192.0.2.10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=0;dashed=1;strokeColor=#557d80;fontSize=10;endArrow=open;">
+            <mxGeometry as="geometry" relative="1" />
+          </mxCell>
+        </object>
+        <object id="path-1" label="FDB · Gi1/0/8" tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/8; vínculo direto não confirmado" kind="fdb_path" source="Origem da observação não registrada" observed_at="Instante não registrado" direct_link_confirmed="false">
+          <mxCell edge="1" parent="1" source="group-0-observer" target="group-0-node-192.0.2.11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=0;dashed=1;strokeColor=#557d80;fontSize=10;endArrow=open;">
+            <mxGeometry as="geometry" relative="1" />
+          </mxCell>
+        </object>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

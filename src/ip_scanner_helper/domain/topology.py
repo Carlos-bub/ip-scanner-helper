@@ -1,66 +1,140 @@
-"""Evidence model shared by the desktop map and offline HTML export."""
+"""Inventory relationships and logical memberships, independent of positions."""
 
+from collections.abc import Mapping
+from enum import Enum
 from ipaddress import IPv4Address
 import json
-import math
+
+from ip_scanner_helper.domain.inventory import normalized
+
+
+class RelationKind(str, Enum):
+    LOGICAL_GROUP = "logical_group"
+    FDB_PATH = "fdb_path"
+    # Reserved for a future collector. FDB never produces this kind.
+    REPORTED_NEIGHBOR = "reported_neighbor"
+
+
+CATEGORIES = (
+    ("infrastructure", "Infraestrutura", "network", "#356a78"),
+    ("servers", "Servidores", "server", "#4e6e5d"),
+    ("workstations", "Estações", "computer", "#526577"),
+    ("workstations_servers", "Estações / servidores", "computer", "#526577"),
+    ("printers", "Impressoras", "printer", "#896b46"),
+    ("cctv", "CFTV", "camera", "#8b5d60"),
+    ("voip", "Telefonia IP", "phone", "#7c7650"),
+    ("other", "Outras categorias", "device", "#666b78"),
+    ("unknown", "Não identificados", "device", "#727b88"),
+)
 
 
 def valid_ip(value):
+    if not isinstance(value, str):
+        return None
     try:
         ip = IPv4Address(value)
         return str(ip) if not ip.is_multicast and not ip.is_unspecified and int(ip) != 0xFFFFFFFF else None
-    except (ValueError, TypeError):
+    except ValueError:
         return None
 
 
+def _category(kind):
+    text = normalized(kind)
+    if any(word in text for word in ("switch", "roteador", "firewall", "access point")):
+        return "infrastructure"
+    if "estacao" in text:
+        return "workstations_servers" if "servidor" in text else "workstations"
+    if "servidor" in text:
+        return "servers"
+    if "impressora" in text:
+        return "printers"
+    if any(word in text for word in ("cftv", "camera", "dvr", "nvr")):
+        return "cctv"
+    if any(word in text for word in ("telefonia", "voip")):
+        return "voip"
+    return "unknown" if text in ("", "nao identificado", "dispositivo nao identificado") else "other"
+
+
 def build_topology_graph(devices, gateway=None):
-    """FDB proves a learned path, never a direct cable or LLDP adjacency."""
-    nodes = [{"id": "inventory", "nome": "Rede observada", "ip": "", "tipo": "Inventário",
-              "color": "#0284c7", "detail": "Agrupamento lógico; conexões físicas não identificadas"}]
-    edges = []
-    addresses = {d["ip"] for d in devices if valid_ip(d.get("ip"))}
+    """Keep every learned path without inventing a parent, cable, or gateway link."""
+    records = {}
     for device in devices:
-        ip = valid_ip(device.get("ip"))
-        if not ip:
-            continue
-        kind = device.get("tipo", "Não identificado")
-        color = "#0369a1" if "switch" in kind.lower() else "#475569"
-        detail = "\n".join(f"{key}: {device.get(key, 'Não disponível')}" for key in
-                           ("nome", "ip", "mac", "tipo", "fabricante", "latencia", "confianca"))
+        if isinstance(device, Mapping) and (ip := valid_ip(device.get("ip"))):
+            records.setdefault(ip, device)
+    addresses = sorted(records, key=IPv4Address)
+    categories = {item[0]: item for item in CATEGORIES}
+    nodes, edges, seen = [], [], set()
+    gateway = valid_ip(gateway)
+    for ip in addresses:
+        device = records[ip]
+        kind = str(device.get("tipo") or "Dispositivo não identificado")
+        category = _category(kind)
+        _, _, icon, color = categories[category]
+        if any(word in normalized(kind) for word in ("roteador", "firewall")):
+            icon = "router"
+        elif "access point" in normalized(kind):
+            icon = "wifi"
+        detail = "\n".join(f"{key}: {device.get(key, 'Não disponível')}" for key in (
+            "nome", "ip", "mac", "tipo", "fabricante", "latencia", "origem", "confianca",
+            "evidencia_categoria", "status", "visto_em"))
         observations = device.get("switch_observations", [])
-        if observations:
-            detail += "\n\nCaminhos observados (vínculo direto não confirmado):\n" + "\n".join(
-                f"Switch {item.get('switch_ip', '?')} · porta {item.get('port', '?')}" for item in observations)
-        nodes.append({"id": ip, "ip": ip, "nome": str(device.get("nome", ip)),
-                      "tipo": str(kind), "color": color, "detail": detail})
-        observed = False
-        for observation in device.get("switch_observations", []):
+        if not isinstance(observations, (list, tuple)):
+            observations = []
+        for observation in observations:
+            if not isinstance(observation, Mapping):
+                continue
             switch_ip = valid_ip(observation.get("switch_ip"))
-            if switch_ip in addresses and switch_ip != ip:
-                edges.append({"from": switch_ip, "to": ip, "observed": True,
-                              "port": str(observation.get("port", "?")),
-                              "label": f"MAC aprendido: {observation.get('port', '?')}; vínculo direto não confirmado"})
-                observed = True
-        if not observed:
-            edges.append({"from": "inventory", "to": ip, "observed": False,
-                          "label": "Conexão física desconhecida; agrupamento do inventário"})
-    infrastructure = [node for node in nodes[1:] if any(word in node["tipo"].lower()
-                       for word in ("switch", "roteador", "firewall", "access point"))]
-    infrastructure_ids = {node["id"] for node in infrastructure}
-    hosts = [node for node in nodes[1:] if node["id"] not in infrastructure_ids]
-    columns = max(2, min(4, max(len(infrastructure), len(hosts), 1)))
-    width, next_y = columns * 260, 190
-    nodes[0].update(x=width / 2, y=60)
-    for group in (infrastructure, hosts):
-        if not group:
-            continue
-        group_columns = min(columns, len(group))
-        for index, node in enumerate(group):
-            node.update(x=width / 2 + (index % group_columns - (group_columns - 1) / 2) * 260,
-                        y=next_y + index // group_columns * 110)
-        next_y += math.ceil(len(group) / group_columns) * 110 + 45
-    return {"nodes": nodes, "edges": edges, "gateway": valid_ip(gateway),
-            "width": width, "height": max(450, next_y + 30)}
+            if not switch_ip or switch_ip == ip:
+                continue
+            port = str(observation.get("port") or "Porta não registrada")
+            origin = str(observation.get("source") or "Origem da observação não registrada")
+            stamp = str(observation.get("observed_at") or "Instante não registrado")
+            key = (switch_ip, ip, port, origin, stamp)
+            if key in seen:
+                continue
+            seen.add(key)
+            edge = {"kind": RelationKind.FDB_PATH.value, "from": switch_ip, "to": ip,
+                    "observed": True, "source_in_inventory": switch_ip in records,
+                    "port": port, "source": origin, "observed_at": stamp,
+                    "direct_link_confirmed": False,
+                    "label": f"MAC aprendido em {switch_ip} · {port}; vínculo direto não confirmado"}
+            edges.append(edge)
+        nodes.append({"id": ip, "ip": ip, "nome": str(device.get("nome") or ip),
+                      "tipo": kind, "category": category, "icon": icon, "color": color,
+                      "detail": detail, "is_gateway": ip == gateway,
+                      "state": "partial" if device.get("coleta_completa") is False else "observed",
+                      "origem": str(device.get("origem") or "Não disponível"),
+                      "confianca": str(device.get("confianca") or "Não disponível")})
+
+    category_groups = []
+    for key, title, icon, color in CATEGORIES:
+        members = [node["id"] for node in nodes if node["category"] == key]
+        if members:
+            category_groups.append({"id": "category:" + key, "kind": RelationKind.LOGICAL_GROUP.value,
+                                    "title": title, "subtitle": "Agrupamento pela categoria do inventário",
+                                    "icon": icon, "color": color, "member_ids": members, "context_ids": []})
+    by_source, mapped = {}, set()
+    for edge in edges:
+        by_source.setdefault(edge["from"], set()).add(edge["to"])
+        mapped.add(edge["to"])
+    switch_groups = []
+    for switch_ip in sorted(by_source, key=IPv4Address):
+        source = records.get(switch_ip)
+        name = str(source.get("nome") or switch_ip) if source else switch_ip
+        switch_groups.append({"id": "switch:" + switch_ip, "kind": RelationKind.LOGICAL_GROUP.value,
+                              "title": "Vistos por " + name,
+                              "subtitle": switch_ip + (" · Caminhos FDB" if source else " · Fora do inventário"),
+                              "icon": "network", "color": "#356a78",
+                              "observer_ip": switch_ip,
+                              "member_ids": sorted(by_source[switch_ip], key=IPv4Address),
+                              "context_ids": [switch_ip] if source else []})
+    unmapped = [ip for ip in addresses if ip not in mapped]
+    if unmapped:
+        switch_groups.append({"id": "switch:unmapped", "kind": RelationKind.LOGICAL_GROUP.value,
+                              "title": "Sem caminho FDB", "subtitle": "Nenhuma associação registrada nesta coleta",
+                              "icon": "device", "color": "#727b88", "member_ids": unmapped, "context_ids": []})
+    return {"nodes": nodes, "edges": edges, "gateway": gateway,
+            "groupings": {"category": category_groups, "switch": switch_groups}}
 
 
 def safe_json(value):

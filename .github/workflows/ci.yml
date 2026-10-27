@@ -18,6 +18,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - name: Install package and desktop dependencies
         run: python -m pip install .
       - name: Run tests
@@ -28,3 +31,5 @@ jobs:
         run: python scripts/smoke_preferences.py
       - name: Credential vault smoke test (synthetic DPAPI data)
         run: python scripts/smoke_vault.py
+      - name: Offline topology smoke test (local headless browser)
+        run: python scripts/smoke_topology.py

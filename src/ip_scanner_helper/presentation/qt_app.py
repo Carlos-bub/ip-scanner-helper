@@ -72,6 +72,7 @@ def run(args, *, service, desktop, preferences_store=None, credential_vault=None
                 assert window.findChild(QObject, "inventoryTable") is not None, "Tabela não carregou"
                 html = desktop.render_map(controller.devices, controller._gateway)
                 assert "__GRAPH_DATA__" not in html, "Template HTML incompleto"
+                assert "__TOPOLOGY_LAYOUT__" not in html and "__TOPOLOGY_MAP__" not in html, "Scripts do mapa ausentes"
                 assert not engine.qml_warnings, "Avisos QML: " + "; ".join(engine.qml_warnings)
             if args.screenshot:
                 path = Path(args.screenshot).resolve()
