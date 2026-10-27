@@ -25,6 +25,8 @@ Um [exemplo de mapa HTML](docs/demo-topology.html) está incluído: baixe o arqu
 - Presença publicada antes do fim da identificação; nome e serviços atualizados na mesma linha, com estado explícito de coleta incompleta.
 - Filtros de categoria, sem nome, sem MAC e categoria não identificada; busca por serviço e sem distinção de acentos.
 - Colunas configuráveis, larguras ajustáveis e ordenação numérica de IP e latência, mantendo medições ausentes ao final.
+- Preferências persistentes de janela, tabela, última faixa e parâmetros de coleta; rascunho com salvar/cancelar e validação.
+- Contexto de rede capturado por sessão, com ambiente opcional explícito e isolamento entre redes que usam a mesma faixa.
 - Opções avançadas recolhidas, tempo decorrido e consulta dos erros da execução.
 - Entrada por IP, faixa ou CIDR, com validação antes de expandir a lista e limite de 4.096 alvos.
 - Descoberta nativa das interfaces IPv4 e suas máscaras reais no Windows, com fallback PowerShell e sem depender de acesso à internet.
@@ -61,6 +63,10 @@ O atalho de desenvolvimento `scripts\executar.cmd` usa o mesmo ambiente virtual 
 
 Na aplicação, selecione uma interface ou informe a faixa manualmente, escolha o modo e inicie a varredura. Comunidade SNMP, consultas simultâneas e limite de tempo por IP ficam em **Opções**. O padrão é 20 segundos por alvo; ao atingir o limite, os dados confirmados permanecem na tabela e os endereços afetados aparecem em **N incompletas** no rodapé. Em janelas compactas, a seleção de interface também fica nessa área. A interface selecionada sugere a faixa e identifica o gateway local; as rotas do Windows determinam a interface efetivamente utilizada pelas sondas.
 
+Em **Preferências**, defina modo, concorrência e limite por IP para a próxima varredura. A janela, colunas, larguras, ordenação e última faixa são lembradas automaticamente em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Credenciais e resultados ficam fora desse arquivo. Demonstração e autoverificação não leem nem gravam as preferências pessoais. Veja a [tela de preferências](docs/desktop-preferences.png) e o [contrato de persistência e contexto](docs/preferences-and-context.md).
+
+O campo **Ambiente**, em Opções, permite dar um nome exclusivo à rede desta coleta. Ele começa vazio ao abrir o aplicativo. Sem ambiente informado, cada sessão fica isolada; o mesmo CIDR não estabelece a identidade de uma rede. Essa base prepara o histórico futuro, que ainda não está implementado.
+
 Selecione uma linha e use **Detalhes**, duplo clique ou `Enter` para abrir o painel lateral. Apenas selecionar uma linha mantém a tabela inteira visível. As abas distinguem a origem do nome da confiança da categoria. Use **Colunas** para escolher os campos; IP e nome permanecem disponíveis. Arraste a borda do cabeçalho para ajustar larguras. O botão direito reúne as ações de cópia, acesso e mapeamento de portas. Atalhos: `Ctrl+F` busca, setas navegam, `Enter` abre detalhes e `Esc` limpa os filtros. Veja os [detalhes sob demanda](docs/desktop-details.png), a [janela compacta](docs/desktop-compact.png) e o [mapeamento de switch](docs/desktop-switch.png).
 
 O modo **Rápido** verifica presença, portas TCP comuns, SNMP, DNS e NetBIOS. O modo **Completo** acrescenta as sondas de identificação especializadas. O inventário exibe apenas equipamentos com resposta atual a pelo menos um dos métodos de presença.
@@ -72,6 +78,7 @@ O botão Parar solicita o cancelamento cooperativo. O DNS nativo aceita solicita
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 .venv\Scripts\python.exe scripts/smoke_ui.py
+.venv\Scripts\python.exe scripts/smoke_preferences.py
 ```
 
 Os testes unitários e de regressão usam respostas simuladas. Cobrem BER/SNMP, comprimentos longos, validação de respostas, cancelamento e isolamento de sessões, exceções de tarefas, identificação por MAC, presença atual, RTT, certificados, limites de coleta, exportações e injeção de HTML.
@@ -82,17 +89,19 @@ O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, 
 
 ## Gerar o executável
 
+A [validação 2.0.5](docs/validation-2.0.5.md) registra a persistência, os contextos de rede e os fluxos gráficos desta versão.
+
 ```powershell
 .venv\Scripts\python.exe -m pip install -e ".[build]"
 .venv\Scripts\python.exe scripts/build_windows.py
 .venv\Scripts\python.exe scripts/package_release.py
 ```
 
-Saída: `dist/portfolio/2.0.4/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
+Saída: `dist/portfolio/2.0.5/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
 
 ```powershell
-dist\portfolio\2.0.4\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
-dist\portfolio\2.0.4\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
+dist\portfolio\2.0.5\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
+dist\portfolio\2.0.5\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
 ```
 
 Para gerar os artefatos públicos da demonstração:

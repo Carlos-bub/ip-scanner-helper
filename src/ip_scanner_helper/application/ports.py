@@ -7,6 +7,7 @@ from threading import Event
 from typing import Protocol
 
 from ip_scanner_helper.domain.interfaces import LocalInterface
+from ip_scanner_helper.domain.preferences import Preferences
 from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ProbeContext
 
 
@@ -33,6 +34,14 @@ class SwitchMapper(Protocol):
     def mapear_switch(self, ip: str, community: str, devices: list[dict]) -> list[dict]: ...
     def mapear_por_texto(self, text: str, devices: list[dict]) -> list[dict]: ...
     def mapear_por_telnet(self, ip: str, user: str, password: str, port: int, devices: list[dict]) -> list[dict]: ...
+
+
+class PreferencesStore(Protocol):
+    read_only: bool
+    message: str
+
+    def load(self) -> Preferences: ...
+    def save(self, preferences: Preferences) -> None: ...
 
 
 @dataclass(frozen=True)

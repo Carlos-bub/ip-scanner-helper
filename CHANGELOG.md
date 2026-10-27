@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.5 — 2026-10-27
+
+- Preferências básicas persistentes: janela, colunas e larguras, ordenação, última faixa, referência da interface, modo, concorrência e limite por IP.
+- Tela de preferências com rascunho, validação, cancelar e salvar; alterações destinadas à próxima sessão, preservando a coleta em andamento.
+- JSON versionado com substituição atômica, backup de arquivos inválidos e preservação de versões desconhecidas; credenciais e inventário excluídos.
+- Contexto imutável por coleta com interface/prefixo, alvos e ambiente opcional informado explicitamente; a mesma faixa não vincula ambientes automaticamente.
+- Resultados e gateway do mapa vinculados à coleta original, mesmo após mudar a interface para a próxima varredura.
+- Restauração de adaptador por identificador, recuperação de janela após remover um monitor e largura das colunas mantida ao ocultar/exibir campos.
+- Testes gráficos de preferências, rascunhos, sessão ativa, redimensionamento e janela maximizada; demonstração e autoverificação isoladas das preferências pessoais.
+
 ## 2.0.4 — 2026-10-26
 
 - Política imutável de timeouts, prazos monotônicos por operação e orçamento cooperativo de 20 segundos por IP, ajustável em Opções.

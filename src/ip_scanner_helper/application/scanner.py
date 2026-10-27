@@ -9,6 +9,7 @@ from ip_scanner_helper.domain.oui_database import identificar_fabricante_e_tipo
 from ip_scanner_helper.application.observations import ProbeRecorder, ScanCancelled
 from ip_scanner_helper.application.ports import NetworkProbe
 from ip_scanner_helper.domain.classification import classify_device
+from ip_scanner_helper.domain.network_context import NetworkContext
 from ip_scanner_helper.application.errors import ProbeTimeout, ScanIncomplete, TargetBudgetExceeded
 from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ProbeContext, ScanTimeouts
 
@@ -20,6 +21,7 @@ class ScanOptions:
     mode: str = "Completo"
     probe_metrics: bool = False
     timeouts: ScanTimeouts = DEFAULT_TIMEOUTS
+    network_context: NetworkContext | None = None
 
     def __post_init__(self):
         if not 1 <= self.workers <= 128:
@@ -32,6 +34,8 @@ class ScanOptions:
             raise ValueError("A opção de diagnóstico deve ser booleana.")
         if not isinstance(self.timeouts, ScanTimeouts):
             raise ValueError("Configuração de tempo inválida.")
+        if self.network_context is not None and not isinstance(self.network_context, NetworkContext):
+            raise ValueError("Contexto de rede inválido.")
 
 
 def scan_device(ip: str, options: ScanOptions, cancelled: Event, arp_cache: dict, *,

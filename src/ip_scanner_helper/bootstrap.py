@@ -8,6 +8,11 @@ from ip_scanner_helper.infrastructure.html_topology import gerar_html_topologia_
 from ip_scanner_helper.infrastructure.network.interfaces import discover_interfaces
 from ip_scanner_helper.infrastructure.network.resolver import NetworkResolver
 from ip_scanner_helper.infrastructure.network.switch_port_mapper import SwitchPortMapper
+from ip_scanner_helper.infrastructure.preferences import JsonPreferencesStore, default_settings_path
+
+
+def create_preferences_store():
+    return JsonPreferencesStore(default_settings_path())
 
 
 def create_scan_service(worker=scan_device):

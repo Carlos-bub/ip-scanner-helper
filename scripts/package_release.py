@@ -40,7 +40,8 @@ def main():
         "Abra IP_Scanner_Helper.exe para usar o inventário de rede.\n"
         "Demonstração sem sondagens: IP_Scanner_Helper.exe --demo\n"
         "Autoverificação: IP_Scanner_Helper.exe --self-check\n"
-        "Logs: %LOCALAPPDATA%\\IPScannerHelper\\scanner.log\n",
+        "Logs: %LOCALAPPDATA%\\IPScannerHelper\\scanner.log\n"
+        "Preferências: %LOCALAPPDATA%\\IPScannerHelper\\settings.json\n",
         encoding="utf-8")
     source_zip = destination / f"IP_Scanner_Helper-{VERSION}-source.zip"
     binary_zip = destination / f"IP_Scanner_Helper-{VERSION}-windows.zip"

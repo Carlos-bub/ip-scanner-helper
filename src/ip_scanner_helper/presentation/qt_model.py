@@ -18,6 +18,7 @@ class InventoryModel(QAbstractTableModel):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.records = []
+        self.widths = {key: float(width) for key, _, width in COLUMNS}
         self.columns = [column for column in COLUMNS if column[0] != "portas" and column[0] != "confianca"]
 
     def rowCount(self, parent=QModelIndex()):
@@ -98,5 +99,10 @@ class InventoryModel(QAbstractTableModel):
     def set_columns(self, keys):
         selected = set(keys) | {"ip", "nome"}
         self.beginResetModel()
-        self.columns = [column for column in COLUMNS if column[0] in selected]
+        self.columns = [(key, title, self.widths[key]) for key, title, _ in COLUMNS if key in selected]
         self.endResetModel()
+
+    def set_width(self, column, width):
+        key, title, _ = self.columns[column]
+        self.widths[key] = width
+        self.columns[column] = (key, title, width)

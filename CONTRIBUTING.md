@@ -17,6 +17,7 @@ python -m venv .venv
 ```powershell
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 .venv\Scripts\python.exe scripts/smoke_ui.py
+.venv\Scripts\python.exe scripts/smoke_preferences.py
 git diff --check
 ```
 

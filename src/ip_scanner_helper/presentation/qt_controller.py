@@ -1,6 +1,8 @@
 """Qt adapter: workers produce plain data, the Qt event loop owns UI state."""
 
 from datetime import datetime
+from copy import deepcopy
+from dataclasses import replace
 from ipaddress import IPv4Address
 import json
 import logging
@@ -18,7 +20,9 @@ from PySide6.QtWidgets import QFileDialog
 
 from ip_scanner_helper.domain.inventory import identity_source, inventory_metrics, matches_device, sorted_devices
 from ip_scanner_helper.application.scan_service import ScanService
-from ip_scanner_helper.application.ports import DesktopServices
+from ip_scanner_helper.application.ports import DesktopServices, PreferencesStore
+from ip_scanner_helper.domain.preferences import Preferences
+from ip_scanner_helper.domain.network_context import NetworkContext
 from ip_scanner_helper.resources import RESOURCE_ROOT
 from ip_scanner_helper.application.scanner import ScanOptions
 from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ScanTimeouts
@@ -34,11 +38,22 @@ CATEGORIES = {"Todas as categorias": "TODOS", "Infraestrutura": "SWITCH", "Esta�
 class ScannerController(QObject):
     stateChanged = Signal()
     notice = Signal(str, str)
+    settingsChanged = Signal()
+    columnsChanged = Signal()
 
-    def __init__(self, service: ScanService, desktop: DesktopServices, *, demo=False, auto_discover=True, parent=None):
+    def __init__(self, service: ScanService, desktop: DesktopServices, *, demo=False, auto_discover=True,
+                 preferences: Preferences | None = None, preferences_store: PreferencesStore | None = None, parent=None):
         super().__init__(parent)
         self.demo = demo
+        self._preferences = Preferences() if demo else (preferences or Preferences())
+        self._preferences_store = None if demo else preferences_store
+        self.window_preferences = lambda: self._preferences.window
+        self._interface_hint = (self._preferences.interface_id, self._preferences.interface_name)
+        self._inventory_context = None
+        self._inventory_gateway = None
         self.table = InventoryModel(self)
+        self.table.widths.update(dict(self._preferences.column_widths))
+        self.table.set_columns(self._preferences.visible_columns)
         self.service = service
         self.desktop = desktop
         self.devices = []
@@ -53,21 +68,27 @@ class ScannerController(QObject):
         self._started = None
         self._selected_ip = ""
         self._search, self._category, self._quality = "", "TODOS", "Todos"
-        self._sort_key, self._reverse = "ip", False
+        self._sort_key, self._reverse = self._preferences.sort_key, self._preferences.sort_reverse
         self._closed = False
         self._data = {
-            "demo": demo, "target": "192.0.2.0/28" if demo else "", "scanning": False, "stopping": False,
+            "demo": demo, "target": "192.0.2.0/28" if demo else self._preferences.last_target, "scanning": False, "stopping": False,
             "status": "Pronto para iniciar", "progress": 0.0, "completed": 0, "total": 0,
             "elapsed": "00:00", "errorCount": 0, "errorsText": "Nenhum erro nesta execução.",
             "interfaceLabels": [], "interfaceIndex": -1, "interfacesBusy": False,
             "categories": list(CATEGORIES), "detailsOpen": False, "selectedIp": "", "selected": {},
             "visibleCount": 0, "deviceCount": 0, "metrics": inventory_metrics([]), "updatedAt": "",
-            "columnOptions": [], "sortKey": "ip", "sortReverse": False,
+            "columnOptions": [], "sortKey": self._sort_key, "sortReverse": self._reverse,
             "switchBusy": False, "switchRows": [], "switchStatus": "", "switchTitle": "", "switchIp": "",
             "portsText": "", "viewMode": "inventory",
             "scanMetrics": {},
-            "targetTimeout": DEFAULT_TIMEOUTS.target_s, "limitedCount": 0, "limitedTargetsText": "",
+            "targetTimeout": self._preferences.target_timeout, "workers": self._preferences.workers,
+            "mode": self._preferences.mode, "preferencesError": "", "environmentName": "", "networkContext": {},
+            "limitedCount": 0, "limitedTargetsText": "",
         }
+        self.save_timer = QTimer(self)
+        self.save_timer.setSingleShot(True)
+        self.save_timer.setInterval(600)
+        self.save_timer.timeout.connect(lambda: self.save_preferences(notify=True))
         self._column_options()
         self.timer = QTimer(self)
         self.timer.setInterval(75)
@@ -76,6 +97,7 @@ class ScannerController(QObject):
         if demo:
             self.devices = json.loads((RESOURCE_ROOT / "demo_inventory.json").read_text(encoding="utf-8"))
             self._gateway = "192.0.2.1"
+            self._inventory_gateway = self._gateway
             self._data.update(status="Demonstração · dados de exemplo", interfaceLabels=["Rede de demonstração"], interfaceIndex=0)
             self._refresh()
         elif auto_discover:
@@ -112,6 +134,75 @@ class ScannerController(QObject):
     def setTarget(self, value):
         if not self._data["scanning"]:
             self._data["target"] = value
+            self._schedule_save()
+
+    @Slot(str)
+    def setEnvironmentName(self, value):
+        if not self._data["scanning"]:
+            self._data["environmentName"] = value
+
+    def _schedule_save(self):
+        if self._preferences_store is not None and not self._closed:
+            self.save_timer.start()
+
+    def preferences_snapshot(self):
+        return replace(self._preferences, window=self.window_preferences(),
+                       visible_columns=tuple(column[0] for column in self.table.columns),
+                       column_widths=tuple(self.table.widths.items()), sort_key=self._sort_key,
+                       sort_reverse=self._reverse, last_target=self._data["target"],
+                       interface_id=self._interface_hint[0], interface_name=self._interface_hint[1],
+                       mode=self._data["mode"], workers=self._data["workers"], target_timeout=self._data["targetTimeout"])
+
+    def save_preferences(self, *, notify=False):
+        if self._preferences_store is None:
+            return True
+        try:
+            self._preferences_store.save(self.preferences_snapshot())
+        except (OSError, ValueError) as exc:
+            logger.warning("Não foi possível salvar as preferências: %s", exc)
+            message = "Não foi possível salvar as preferências. " + str(exc)
+            previous = self._data["preferencesError"]
+            self._data["preferencesError"] = message
+            self._publish()
+            if notify and message != previous:
+                self.notice.emit("Preferências não salvas", message)
+            return False
+        self._data["preferencesError"] = ""
+        self._publish()
+        return True
+
+    @Slot(result="QVariantMap")
+    def preferencesDraft(self):
+        return self.preferences_snapshot().to_dict()
+
+    @Slot("QVariantMap", result=bool)
+    def applyPreferences(self, values):
+        try:
+            merged = self.preferences_snapshot().to_dict()
+            merged.update({key: values[key] for key in ("mode", "workers", "target_timeout") if key in values})
+            # JavaScript numbers arrive through QVariantMap as doubles.
+            if isinstance(merged["workers"], float) and merged["workers"].is_integer():
+                merged["workers"] = int(merged["workers"])
+            preferences = Preferences.from_dict(merged)
+        except (ValueError, TypeError) as exc:
+            self._data["preferencesError"] = str(exc)
+            self._publish()
+            return False
+        self._preferences = preferences
+        self._data.update(mode=preferences.mode, workers=preferences.workers, targetTimeout=preferences.target_timeout)
+        self.settingsChanged.emit()
+        self._publish()
+        return self.save_preferences()
+
+    @Slot(str, int, float)
+    def setScanDefaults(self, mode, workers, timeout):
+        if not self._data["scanning"]:
+            try:
+                preferences = replace(self._preferences, mode=mode, workers=workers, target_timeout=timeout)
+            except ValueError:
+                return
+            self._data.update(mode=preferences.mode, workers=preferences.workers, targetTimeout=preferences.target_timeout)
+            self._schedule_save()
 
     @Slot(str)
     def search(self, value):
@@ -164,6 +255,7 @@ class ScannerController(QObject):
             self._sort_key = key
             self._data.update(sortKey=key, sortReverse=self._reverse)
             self._refresh()
+            self._schedule_save()
 
     def _column_options(self):
         keys = {column[0] for column in self.table.columns}
@@ -177,6 +269,14 @@ class ScannerController(QObject):
         self.table.set_columns(keys)
         self._column_options()
         self._publish()
+        self.columnsChanged.emit()
+        self._schedule_save()
+
+    @Slot(int, float)
+    def resizeColumn(self, column, width):
+        if 0 <= column < len(self.table.columns) and 60 <= width <= 1200:
+            self.table.set_width(column, float(width))
+            self._schedule_save()
 
     @Slot(int, result=float)
     def columnWidth(self, column):
@@ -196,12 +296,19 @@ class ScannerController(QObject):
             return
         try:
             targets = parse_targets(self._data["target"])
+            index = self._data["interfaceIndex"]
+            interface = self._interfaces[index] if 0 <= index < len(self._interfaces) else None
+            label = self._data["environmentName"].strip()
+            context = NetworkContext.for_scan(self._data["target"], interface, environment_label=label,
+                                              environment_confirmed=bool(label))
             options = ScanOptions(community=community.strip(), workers=workers, mode=self._data.get("mode", "Completo"),
-                                  timeouts=ScanTimeouts(target_s=target_timeout))
+                                  timeouts=ScanTimeouts(target_s=target_timeout), network_context=context)
             self._session = self.service.start(targets, options)
         except (ValueError, RuntimeError) as exc:
             self.notice.emit("Não foi possível iniciar", str(exc))
             return
+        self._inventory_context = context.snapshot(self._session, targets)
+        self._inventory_gateway = context.gateway
         self.devices.clear()
         self.errors.clear()
         self._limited.clear()
@@ -209,15 +316,18 @@ class ScannerController(QObject):
         self._started = time.monotonic()
         self._selected_ip = ""
         self._data.update(scanning=True, stopping=False, detailsOpen=False, switchBusy=False, switchRows=[], progress=0.0,
-                          scanMetrics={}, targetTimeout=options.timeouts.target_s, limitedCount=0, limitedTargetsText="",
+                          scanMetrics={}, targetTimeout=options.timeouts.target_s, workers=options.workers,
+                          networkContext=deepcopy(self._inventory_context), limitedCount=0, limitedTargetsText="",
                           completed=0, total=len(targets), elapsed="00:00", errorCount=0,
                           errorsText="Nenhum erro nesta execução.", status="Consultando endereços da rede…")
         self._refresh()
+        self._schedule_save()
 
     @Slot(str)
     def setMode(self, mode):
         if not self._data["scanning"] and mode in ("Rápido", "Completo"):
             self._data["mode"] = mode
+            self._schedule_save()
 
     @Slot()
     def stopScan(self):
@@ -247,9 +357,16 @@ class ScannerController(QObject):
         self._async("interfaces", self.desktop.discover_interfaces, self._received_interfaces)
 
     def _received_interfaces(self, result, error):
+        if self._data["scanning"]:
+            self._data["interfacesBusy"] = False
+            return
         self._interfaces = result or []
-        self._data.update(interfacesBusy=False, interfaceLabels=[item.label for item in self._interfaces], interfaceIndex=0 if self._interfaces else -1)
-        if self._interfaces and not self._data["scanning"] and not self._data["target"]:
+        adapter_id, name = self._interface_hint
+        index = next((i for i, item in enumerate(self._interfaces)
+                      if (item.adapter_id == adapter_id if adapter_id else bool(name) and item.name == name)), -1)
+        self._gateway = self._interfaces[index].gateway if index >= 0 else None
+        self._data.update(interfacesBusy=False, interfaceLabels=[item.label for item in self._interfaces], interfaceIndex=index)
+        if self._interfaces and not self._data["target"] and not (adapter_id or name):
             self.selectInterface(0)
         self._publish()
 
@@ -258,8 +375,10 @@ class ScannerController(QObject):
         if 0 <= index < len(self._interfaces) and not self._data["scanning"]:
             selected = self._interfaces[index]
             self._gateway = selected.gateway
+            self._interface_hint = (selected.adapter_id, selected.name)
             self._data.update(target=selected.network, interfaceIndex=index)
             self._publish()
+            self._schedule_save()
 
     @Slot()
     def poll(self):
@@ -358,7 +477,7 @@ class ScannerController(QObject):
         elif kind == "json":
             self.desktop.export_json(path, self.devices)
         elif kind == "html":
-            Path(path).write_text(self.desktop.render_map(self.devices, self._gateway), encoding="utf-8")
+            Path(path).write_text(self.desktop.render_map(self.devices, self._inventory_gateway), encoding="utf-8")
 
     @Slot(str)
     def export(self, kind):
@@ -379,7 +498,7 @@ class ScannerController(QObject):
             return
         try:
             with tempfile.NamedTemporaryFile(mode="w", suffix=".html", prefix="ip-scanner-", encoding="utf-8", delete=False) as output:
-                output.write(self.desktop.render_map(self.devices, self._gateway))
+                output.write(self.desktop.render_map(self.devices, self._inventory_gateway))
             QDesktopServices.openUrl(QUrl.fromLocalFile(output.name))
         except OSError as exc:
             self.notice.emit("Erro ao abrir o mapa", str(exc))
@@ -443,6 +562,10 @@ class ScannerController(QObject):
 
     @Slot()
     def close(self):
+        if self._closed:
+            return
+        self.save_timer.stop()
+        self.save_preferences()
         self._closed = True
         self.timer.stop()
         self.service.cancel()

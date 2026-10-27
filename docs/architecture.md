@@ -31,11 +31,15 @@ flowchart LR
 
 `DesktopServices` explicita descoberta de interfaces, exportações, mapa e coleta de switches. O controlador Qt recebe essas capacidades e um serviço de varredura; não importa coletores concretos nem os constrói. A fábrica em `bootstrap.py` apenas conecta os objetos, sem abrir sockets ou iniciar threads de rede.
 
+`Preferences` e `WindowPreferences` são valores imutáveis e validados no domínio. O contrato `PreferencesStore` fica na aplicação; `JsonPreferencesStore`, na infraestrutura. A composição fornece o armazenamento ao ciclo de vida Qt, e o controlador recebe apenas o contrato. Demonstração e autoverificação dispensam esse armazenamento. A geometria e os monitores pertencem à apresentação. Consulte [preferências e contexto](preferences-and-context.md).
+
 `tests/test_architecture.py` verifica limites de importação, ciclos e execução do pacote instalado fora da raiz. Não é necessário criar uma classe para cada função; regras puras permanecem funções, e os contratos existem nos pontos onde há uma implementação externa.
 
 ## Separação entre coleta e interface
 
 `ScanOptions` é uma configuração imutável capturada antes da execução. Nenhuma tarefa de rede lê widgets ou propriedades Qt. `scan_device` recebe um endereço, opções, evento de cancelamento e um snapshot do cache ARP; retorna um registro ou `None`. Recebe o coletor por `resolver` e pode publicar presença parcial por `on_discovery`, antes do enriquecimento completo.
+
+`NetworkContext` captura interface, endereço/prefixo, gateway, alvos e um ambiente opcional explicitamente informado. `ScanService.context` e o evento de conclusão expõem cópias defensivas dos metadados. Sem confirmação de ambiente, o escopo de comparação é exclusivo da sessão; com confirmação, inclui o identificador do ambiente e o hash dos alvos efetivos. Interface/CIDR isolados não autorizam reunir redes. O mapa dos resultados usa o gateway capturado, independente das escolhas feitas para a próxima coleta.
 
 `ScanService` agenda até duas vezes o número de workers em tarefas pendentes. A lista de endereços é validada antes da alocação e possui limite de 4.096 destinos. Assim, a aplicação não materializa uma rede `/8` e não cria uma fila ilimitada de futures.
 
@@ -97,4 +101,4 @@ O comando instalado `ip-scanner-helper` e `python -m ip_scanner_helper` utilizam
 
 `scripts/build_windows.py` constrói a distribuição versionada e executa `--self-check` com dados fictícios, a partir de uma pasta diferente das fontes. A versão do executável vem de `pyproject.toml`. O empacotamento só aceita um build cujo hash do executável e das fontes coincide com o registro de validação.
 
-Preferências, histórico e agrupamentos futuros devem seguir as mesmas dependências: regras no domínio, coordenação na aplicação, persistência ou coleta na infraestrutura e interação na apresentação. Não há pastas vazias nem componentes desses recursos antecipados nesta entrega.
+Histórico e agrupamentos futuros devem seguir as mesmas dependências: regras no domínio, coordenação na aplicação, persistência ou coleta na infraestrutura e interação na apresentação. As preferências básicas já usam essas fronteiras; perfis de portas e armazenamento protegido de credenciais permanecem pendentes.

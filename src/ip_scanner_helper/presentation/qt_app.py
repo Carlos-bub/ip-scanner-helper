@@ -12,6 +12,8 @@ from PySide6.QtQuickControls2 import QQuickStyle
 from PySide6.QtWidgets import QApplication, QMessageBox
 
 from ip_scanner_helper.presentation.qt_controller import ScannerController
+from ip_scanner_helper.domain.preferences import Preferences
+from ip_scanner_helper.presentation.window_preferences import WindowPreferencesBinding
 
 logger = logging.getLogger(__name__)
 RESOURCES = Path(__file__).resolve().parent
@@ -35,12 +37,16 @@ def create_window(controller):
     return engine, engine.rootObjects()[0]
 
 
-def run(args, *, service, desktop):
+def run(args, *, service, desktop, preferences_store=None):
     app = QApplication.instance() or QApplication([sys.argv[0]])
     app.setApplicationName("IP Scanner Helper")
     app.setOrganizationName("IPScannerHelper")
     app.setWindowIcon(QIcon(str(RESOURCES / "assets" / "app.ico")))
-    controller = ScannerController(service=service, desktop=desktop, demo=args.demo or args.self_check)
+    demo = args.demo or args.self_check
+    preferences_store = None if demo else preferences_store
+    preferences = preferences_store.load() if preferences_store is not None else Preferences()
+    controller = ScannerController(service=service, desktop=desktop, demo=demo,
+                                   preferences=preferences, preferences_store=preferences_store)
     try:
         engine, window = create_window(controller)
     except Exception:
@@ -50,6 +56,11 @@ def run(args, *, service, desktop):
             QMessageBox.critical(None, "Erro ao iniciar", "Não foi possível carregar a interface. Consulte scanner.log para os detalhes.")
         return 1
     failures = []
+    if not demo:
+        geometry = WindowPreferencesBinding(window, preferences.window)
+        controller.window_preferences = geometry.snapshot
+        if preferences_store is not None and preferences_store.message:
+            QTimer.singleShot(0, lambda: controller.notice.emit("Preferências", preferences_store.message))
     app.aboutToQuit.connect(controller.close)
 
     def check():

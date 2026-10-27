@@ -18,6 +18,16 @@ ApplicationWindow {
     property string switchMethod: "snmp"
     property real savedScroll: 0
     property var state: scanner.state
+    function syncSettings() {
+        modeBox.currentIndex = scanner.state.mode === "Rápido" ? 0 : 1;
+        workers.text = String(scanner.state.workers);
+        targetTimeout.text = String(scanner.state.targetTimeout);
+    }
+    function rememberScanDefaults() {
+        scanner.setScanDefaults(modeBox.currentText, Number(workers.text), Number(targetTimeout.text));
+    }
+    Component.onCompleted: syncSettings()
+    Connections { target: scanner; function onSettingsChanged() { root.syncSettings(); } function onColumnsChanged() { table.clearColumnWidths(); table.forceLayout(); } }
 
     Shortcut { sequence: "Ctrl+F"; onActivated: searchField.forceActiveFocus() }
     Shortcut { sequence: "Escape"; onActivated: { searchField.clear(); categoryBox.currentIndex = 0; scanner.category(categoryBox.currentText); qualityBox.currentIndex = 0; scanner.quality("Todos"); } }
@@ -36,6 +46,7 @@ ApplicationWindow {
             Rectangle { width: 1; height: 18; color: Theme.border; Layout.leftMargin: 8; Layout.rightMargin: 8 }
             Text { text: root.state.demo ? "Demonstração" : "Inventário IPv4"; font.pixelSize: 12; color: Theme.muted }
             Item { Layout.fillWidth: true }
+            AppButton { objectName: "preferencesButton"; text: "Preferências"; onClicked: preferencesDialog.open() }
             AppButton { text: "Mapa da rede"; enabled: root.state.deviceCount > 0; onClicked: scanner.openMap() }
             AppButton { id: exportButton; text: "Exportar"; enabled: root.state.deviceCount > 0 && !root.state.scanning; onClicked: exportMenu.popup() }
         }
@@ -69,12 +80,12 @@ ApplicationWindow {
                     ColumnLayout {
                         visible: root.width > 1120; Layout.fillWidth: true; Layout.preferredWidth: 320; spacing: 7
                         Text { text: "Interface de rede"; color: Theme.muted; font.pixelSize: 12 }
-                        AppCombo { Layout.fillWidth: true; model: root.state.interfaceLabels; currentIndex: root.state.interfaceIndex; displayText: count ? currentText : "Informar faixa manualmente"; enabled: !root.state.demo && !root.state.scanning; onActivated: scanner.selectInterface(currentIndex) }
+                        AppCombo { Layout.fillWidth: true; model: root.state.interfaceLabels; currentIndex: root.state.interfaceIndex; displayText: currentIndex >= 0 ? currentText : "Informar faixa manualmente"; enabled: !root.state.demo && !root.state.scanning; onActivated: scanner.selectInterface(currentIndex) }
                     }
                     ColumnLayout {
                         spacing: 7
                         Text { text: "Consulta"; color: Theme.muted; font.pixelSize: 12 }
-                        AppCombo { id: modeBox; Layout.preferredWidth: 128; model: ["Rápido", "Completo"]; currentIndex: 1; enabled: !root.state.scanning; onActivated: scanner.setMode(currentText) }
+                        AppCombo { id: modeBox; objectName: "modeBox"; Layout.preferredWidth: 128; model: ["Rápido", "Completo"]; currentIndex: 1; enabled: !root.state.scanning; onActivated: { scanner.setMode(currentText); root.rememberScanDefaults(); } }
                     }
                     AppButton { objectName: "optionsButton"; text: "Opções"; Layout.alignment: Qt.AlignBottom; hint: "Comunidade SNMP, consultas simultâneas e limite por IP"; onClicked: advanced.visible = !advanced.visible }
                     AppButton {
@@ -91,22 +102,33 @@ ApplicationWindow {
                     visible: advanced.visible && root.width <= 1120
                     Layout.fillWidth: true
                     Text { text: "Interface de rede"; color: Theme.muted; font.pixelSize: 12 }
-                    AppCombo { Layout.fillWidth: true; model: root.state.interfaceLabels; currentIndex: root.state.interfaceIndex; displayText: count ? currentText : "Informar faixa manualmente"; enabled: !root.state.demo && !root.state.scanning; onActivated: scanner.selectInterface(currentIndex) }
+                    AppCombo { Layout.fillWidth: true; model: root.state.interfaceLabels; currentIndex: root.state.interfaceIndex; displayText: currentIndex >= 0 ? currentText : "Informar faixa manualmente"; enabled: !root.state.demo && !root.state.scanning; onActivated: scanner.selectInterface(currentIndex) }
                 }
                 RowLayout {
                     id: advanced; objectName: "advancedOptions"; visible: false; spacing: 12; Layout.fillWidth: true
                     Text { text: "Comunidade SNMP"; color: Theme.muted; font.pixelSize: 12 }
                     AppField { id: community; text: "public"; echoMode: TextInput.Password; Layout.preferredWidth: 160; enabled: !root.state.scanning }
                     Text { text: "Consultas simultâneas"; color: Theme.muted; font.pixelSize: 12 }
-                    AppField { id: workers; text: "32"; Layout.preferredWidth: 64; validator: IntValidator { bottom: 1; top: 128 } enabled: !root.state.scanning }
+                    AppField { id: workers; objectName: "workersField"; text: "32"; Layout.preferredWidth: 64; validator: IntValidator { bottom: 1; top: 128 } enabled: !root.state.scanning; onEditingFinished: root.rememberScanDefaults() }
                     AppButton { text: "Atualizar interfaces"; variant: "quiet"; enabled: !root.state.demo && !root.state.scanning && !root.state.interfacesBusy; onClicked: scanner.refreshInterfaces() }
                     Item { Layout.fillWidth: true }
                 }
                 RowLayout {
                     visible: advanced.visible; Layout.fillWidth: true; spacing: 12
                     Text { text: "Limite por IP (s)"; color: Theme.muted; font.pixelSize: 12 }
-                    AppField { id: targetTimeout; objectName: "targetTimeoutField"; text: "20"; Layout.preferredWidth: 64; validator: IntValidator { bottom: 1; top: 120 } enabled: !root.state.scanning }
+                    AppField { id: targetTimeout; objectName: "targetTimeoutField"; text: "20"; Layout.preferredWidth: 64; validator: DoubleValidator { bottom: 0.01; top: 300; decimals: 2; locale: "C" } enabled: !root.state.scanning; onEditingFinished: root.rememberScanDefaults() }
                     Text { text: "Ao atingir o limite, os dados encontrados são preservados."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                }
+                RowLayout {
+                    visible: advanced.visible; Layout.fillWidth: true; spacing: 12
+                    Text { text: "Ambiente (opcional)"; color: Theme.muted; font.pixelSize: 12 }
+                    AppField { objectName: "environmentField"; Layout.preferredWidth: 220; maximumLength: 120; placeholderText: "Ex.: Escritório · matriz"; enabled: !root.state.scanning; onTextEdited: scanner.setEnvironmentName(text) }
+                    Text { text: "Use um nome exclusivo para cada rede. Sem nome, a coleta fica isolada."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap }
+                }
+                Text {
+                    visible: advanced.visible && root.state.networkContext.target_count > 0
+                    text: "Resultados desta coleta: " + (root.state.networkContext.environment_label || "ambiente não informado") + " · " + (root.state.networkContext.target_expression || "")
+                    color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap; textFormat: Text.PlainText
                 }
             }
         }
@@ -143,7 +165,7 @@ ApplicationWindow {
                         Layout.fillWidth: true; implicitHeight: 43
                         syncView: table
                         clip: true
-                        resizableColumns: true
+                        resizableColumns: false
                         delegate: Rectangle {
                             required property int column
                             required property var display
@@ -152,6 +174,16 @@ ApplicationWindow {
                             Text { anchors.fill: parent; anchors.leftMargin: 16; anchors.rightMargin: 14; verticalAlignment: Text.AlignVCenter; text: { let state = scanner.state; return scanner.columnTitle(column); } color: "#667381"; font.pixelSize: 12; font.weight: Font.DemiBold; elide: Text.ElideRight }
                             Rectangle { width: 1; height: 14; color: Theme.border; anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter }
                             TapHandler { onTapped: scanner.sortColumn(column) }
+                            MouseArea {
+                                anchors.right: parent.right; width: 10; height: parent.height
+                                cursorShape: Qt.SizeHorCursor
+                                property real startX: 0
+                                property real startWidth: 0
+                                onPressed: function(mouse) { startX = mapToItem(root.contentItem, mouse.x, 0).x; startWidth = parent.width; }
+                                onPositionChanged: function(mouse) {
+                                    if (pressed) { let size = Math.max(60, Math.min(1200, startWidth + mapToItem(root.contentItem, mouse.x, 0).x - startX)); table.setColumnWidth(column, size); scanner.resizeColumn(column, size); }
+                                }
+                            }
                         }
                     }
                     Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.border }
@@ -181,7 +213,7 @@ ApplicationWindow {
                         }
                         onWidthChanged: forceLayout()
                         rowHeightProvider: function(row) { return 46; }
-                        resizableColumns: true
+                        resizableColumns: false
                         ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
                         ScrollBar.horizontal: ScrollBar { policy: ScrollBar.AsNeeded }
                         Keys.onReturnPressed: scanner.openDetails()
@@ -211,6 +243,8 @@ ApplicationWindow {
                             }
                         }
                         Text {
+                            parent: table
+                            objectName: "inventoryEmptyState"
                             anchors.centerIn: parent; visible: root.state.visibleCount === 0
                             text: root.state.deviceCount ? "Nenhum resultado para estes filtros." : root.state.scanning ? "Aguardando respostas da rede…" : "Informe uma faixa de IPs para iniciar."
                             font.pixelSize: 15; color: "#84909b"
@@ -310,6 +344,7 @@ ApplicationWindow {
             }
         }
     }
+    PreferencesDialog { id: preferencesDialog; anchors.centerIn: parent; width: Math.min(560, root.width - 60) }
     Menu {
         id: rowMenu
         MenuItem { text: "Detalhes"; onTriggered: scanner.openDetails() }

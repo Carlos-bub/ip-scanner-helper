@@ -24,3 +24,5 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Desktop smoke test (mocked network)
         run: python scripts/smoke_ui.py
+      - name: Preferences smoke test (temporary settings)
+        run: python scripts/smoke_preferences.py

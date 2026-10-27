@@ -3,7 +3,7 @@
 import argparse
 
 from ip_scanner_helper.infrastructure.logging_config import configure_logging
-from ip_scanner_helper.bootstrap import create_desktop_services, create_scan_service
+from ip_scanner_helper.bootstrap import create_desktop_services, create_scan_service, create_preferences_store
 
 
 def main(argv=None):
@@ -15,7 +15,8 @@ def main(argv=None):
     args = parser.parse_args(argv)
     configure_logging(args.log_dir)
     from ip_scanner_helper.presentation.qt_app import run
-    return run(args, service=create_scan_service(), desktop=create_desktop_services())
+    return run(args, service=create_scan_service(), desktop=create_desktop_services(),
+               preferences_store=None if args.demo or args.self_check else create_preferences_store())
 
 
 if __name__ == "__main__":

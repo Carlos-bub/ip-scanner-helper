@@ -1,6 +1,7 @@
 """Bounded scheduling, isolated scan sessions and observable worker failures."""
 
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
+from copy import deepcopy
 from dataclasses import dataclass, field
 import logging
 import time
@@ -12,6 +13,7 @@ from ip_scanner_helper.application.ports import NetworkProbe
 from ip_scanner_helper.application.scanner import ScanCancelled, ScanOptions, scan_device
 from ip_scanner_helper.application.observations import ScanMetrics
 from ip_scanner_helper.application.errors import ScanIncomplete
+from ip_scanner_helper.domain.network_context import NetworkContext
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,11 @@ class ScanService:
         self.cancelled = Event()
         self.session_id = None
         self.cancel_requested_at = None
+        self._context = None
+
+    @property
+    def context(self):
+        return deepcopy(self._context)
 
     @property
     def running(self):
@@ -43,10 +50,13 @@ class ScanService:
         targets = tuple(targets)
         if not targets:
             raise ValueError("A varredura precisa de pelo menos um endereço.")
+        session_id = uuid4().hex
+        context = (options.network_context or NetworkContext()).snapshot(session_id, targets)
         self.cancelled = Event()
         self.cancel_requested_at = None
-        self.session_id = uuid4().hex
-        self.thread = Thread(target=self._run, args=(self.session_id, targets, options, self.cancelled),
+        self.session_id = session_id
+        self._context = context
+        self.thread = Thread(target=self._run, args=(self.session_id, targets, options, self.cancelled, context),
                              name="scan-coordinator", daemon=True)
         self.thread.start()
         return self.session_id
@@ -56,7 +66,7 @@ class ScanService:
             self.cancel_requested_at = time.monotonic()
         self.cancelled.set()
 
-    def _run(self, session, targets, options, cancelled):
+    def _run(self, session, targets, options, cancelled, context):
         completed = errors = limited = 0
         pending = {}
         metrics = ScanMetrics()
@@ -136,5 +146,5 @@ class ScanService:
             emit("error", message="Falha na varredura; consulte o log.")
         finally:
             emit("finished", completed=completed, total=len(targets), errors=errors,
-                 cancelled=cancelled.is_set(), limited_targets=limited, metrics={**metrics.snapshot(self.cancel_requested_at),
+                 cancelled=cancelled.is_set(), limited_targets=limited, network_context=deepcopy(context), metrics={**metrics.snapshot(self.cancel_requested_at),
                                                        "probe_metrics_enabled": options.probe_metrics})
