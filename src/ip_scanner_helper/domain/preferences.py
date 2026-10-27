@@ -3,6 +3,8 @@
 from dataclasses import dataclass, field
 import math
 from typing import Mapping
+from ip_scanner_helper.domain.port_profiles import BUILTIN_PROFILES, MAX_CUSTOM_PROFILES, PortProfile
+from ip_scanner_helper.domain.scan_policy import PROBE_TIMEOUT_DEFAULTS, ScanTimeouts
 
 COLUMN_KEYS = ("ip", "nome", "fabricante", "tipo", "latencia", "mac", "origem", "portas", "confianca")
 DEFAULT_VISIBLE_COLUMNS = COLUMN_KEYS[:7]
@@ -68,8 +70,31 @@ class Preferences:
     mode: str = "Completo"
     workers: int = 32
     target_timeout: float = 20.0
+    port_profile_id: str = "standard"
+    custom_port_profiles: tuple[PortProfile, ...] = ()
+    probe_timeouts: tuple[tuple[str, float], ...] = PROBE_TIMEOUT_DEFAULTS
 
     def __post_init__(self):
+        if (not isinstance(self.custom_port_profiles, (tuple, list)) or len(self.custom_port_profiles) > MAX_CUSTOM_PROFILES
+                or any(not isinstance(profile, PortProfile) for profile in self.custom_port_profiles)):
+            raise ValueError(f"Use até {MAX_CUSTOM_PROFILES} perfis personalizados.")
+        profiles = (*BUILTIN_PROFILES, *self.custom_port_profiles)
+        if len({profile.id for profile in profiles}) != len(profiles):
+            raise ValueError("Identificadores de perfil repetidos ou reservados.")
+        if not isinstance(self.port_profile_id, str) or self.port_profile_id not in {profile.id for profile in profiles}:
+            raise ValueError("Selecione um perfil de portas existente.")
+        object.__setattr__(self, "custom_port_profiles", tuple(self.custom_port_profiles))
+        if not isinstance(self.probe_timeouts, (tuple, list)):
+            raise ValueError("Tempos por sonda inválidos.")
+        times = dict(PROBE_TIMEOUT_DEFAULTS)
+        seen = set()
+        for item in self.probe_timeouts:
+            if not isinstance(item, (tuple, list)) or len(item) != 2 or not isinstance(item[0], str) or item[0] not in times or item[0] in seen:
+                raise ValueError("Tempos por sonda inválidos ou repetidos.")
+            seen.add(item[0])
+            times[item[0]] = item[1]
+        ScanTimeouts(**times)
+        object.__setattr__(self, "probe_timeouts", tuple((key, float(value)) for key, value in times.items()))
         if not isinstance(self.window, WindowPreferences):
             raise ValueError("Preferências de janela inválidas.")
         if (not isinstance(self.visible_columns, (tuple, list))
@@ -114,6 +139,9 @@ class Preferences:
             "sort_reverse": self.sort_reverse, "last_target": self.last_target,
             "interface_id": self.interface_id, "interface_name": self.interface_name,
             "mode": self.mode, "workers": self.workers, "target_timeout": self.target_timeout,
+            "port_profile_id": self.port_profile_id,
+            "custom_port_profiles": [profile.to_dict() for profile in self.custom_port_profiles],
+            "probe_timeouts": dict(self.probe_timeouts),
         }
 
     @classmethod
@@ -121,6 +149,16 @@ class Preferences:
         if not isinstance(payload, Mapping):
             raise ValueError("Preferências inválidas.")
         values = {}
+        if "custom_port_profiles" in payload:
+            if not isinstance(payload["custom_port_profiles"], list) or len(payload["custom_port_profiles"]) > MAX_CUSTOM_PROFILES:
+                raise ValueError("Perfis personalizados inválidos.")
+            values["custom_port_profiles"] = tuple(PortProfile.from_dict(profile) for profile in payload["custom_port_profiles"])
+        if "port_profile_id" in payload:
+            values["port_profile_id"] = payload["port_profile_id"]
+        if "probe_timeouts" in payload:
+            if not isinstance(payload["probe_timeouts"], Mapping):
+                raise ValueError("Tempos por sonda inválidos.")
+            values["probe_timeouts"] = tuple(payload["probe_timeouts"].items())
         if "window" in payload:
             values["window"] = WindowPreferences.from_dict(payload["window"])
         if "visible_columns" in payload:
@@ -134,3 +172,7 @@ class Preferences:
             if key in payload:
                 values[key] = payload[key]
         return cls(**values)
+
+    @property
+    def port_profile(self):
+        return next(profile for profile in (*BUILTIN_PROFILES, *self.custom_port_profiles) if profile.id == self.port_profile_id)

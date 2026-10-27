@@ -38,6 +38,14 @@ def main(capture=False):
 
         def item(name):
             result = window.findChild(QObject, name)
+            if result is None:
+                pending = [window.contentItem()]
+                while pending:
+                    candidate = pending.pop()
+                    if candidate.objectName() == name:
+                        result = candidate
+                        break
+                    pending.extend(candidate.childItems())
             assert result is not None, name
             return result
 
@@ -46,6 +54,18 @@ def main(capture=False):
             point = button.mapToScene(QPointF(button.width() / 2, button.height() / 2)).toPoint()
             QTest.mouseClick(window, Qt.LeftButton, pos=point)
             QTest.qWait(120)
+
+        def edit(name, text):
+            click(name)
+            QTest.keyClick(window, Qt.Key_A, Qt.ControlModifier)
+            for character in text:
+                QTest.keyClick(window, Qt.Key(ord(character.upper())))
+            QTest.qWait(80)
+
+        def screenshot(name):
+            if capture:
+                path = Path(__file__).resolve().parents[1] / "docs" / name
+                assert window.grabWindow().save(str(path))
 
         try:
             QTest.qWait(300)
@@ -93,10 +113,60 @@ def main(capture=False):
             captured = service.start.call_args.args[1]
             click("preferencesButton")
             item("preferenceWorkers").setProperty("text", "16")
+            click("preferencesTab1")
+            click("profileNew")
+            item("profileName").setProperty("text", "Aplicações")
+            item("profilePorts").setProperty("text", "8088 Minha aplicação\n9000 Serviço interno")
+            screenshot("desktop-port-profiles.png")
+            click("preferencesTab2")
+            edit("timeout_tcp", "0")
+            assert item("timeout_tcp").property("text") == "0", "O campo de tempo não recebeu a edição"
             click("preferencesSave")
+            assert item("preferencesDialog").property("visible"), "Tempo inválido foi aceito"
+            assert controller.state["workers"] == 12, "Rascunho inválido foi aplicado parcialmente"
+            edit("timeout_tcp", "0.75")
+            edit("timeout_snmp", "1.25")
+            screenshot("desktop-probe-timeouts.png")
+            click("preferencesSave")
+            assert not item("preferencesDialog").property("visible"), controller.state["preferencesError"]
             assert controller.state["scanning"]
             assert captured.workers == 12, "Preferência alterou a sessão ativa"
+            assert captured.port_profile.id == "standard"
+            assert captured.timeouts.tcp == .2
             assert controller.state["workers"] == 16
+            prefs = controller.preferences_snapshot()
+            assert prefs.port_profile.tcp_mapping() == {8088: "Minha aplicação", 9000: "Serviço interno"}
+            assert dict(prefs.probe_timeouts)["tcp"] == .75
+            assert dict(prefs.probe_timeouts)["snmp"] == 1.25
+            # Removing a saved custom profile is still a draft until Save.
+            click("preferencesButton")
+            click("preferencesTab1")
+            assert item("profileName").property("text") == "Aplicações"
+            click("profileDuplicate")
+            assert item("profileName").property("text") == "Aplicações cópia"
+            click("profileRemove")
+            click("preferencesCancel")
+            assert controller.preferences_snapshot().port_profile_id == prefs.port_profile_id
+            click("preferencesButton")
+            click("preferencesTab1")
+            click("profileRemove")
+            click("preferencesCancel")
+            assert controller.preferences_snapshot().port_profile_id == prefs.port_profile_id
+            click("preferencesButton")
+            click("preferencesTab2")
+            click("resetProbeTimeouts")
+            assert item("timeout_tcp").property("text") == "0.2"
+            click("preferencesCancel")
+            assert dict(controller.preferences_snapshot().probe_timeouts)["tcp"] == .75
+            window.resize(960, 640)
+            QTest.qWait(150)
+            click("preferencesButton")
+            for tab in range(3):
+                click(f"preferencesTab{tab}")
+                save = item("preferencesSave")
+                edge = save.mapToScene(QPointF(save.width(), save.height()))
+                assert edge.x() <= window.width() and edge.y() <= window.height(), "Rodapé fora da janela compacta"
+            click("preferencesCancel")
             window.resize(1180, 780)
             QTest.qWait(250)
             normal = geometry.snapshot()
@@ -108,6 +178,8 @@ def main(capture=False):
             controller.close()
             restored = JsonPreferencesStore(store.path).load()
             assert restored.workers == 16
+            assert restored.port_profile_id == prefs.port_profile_id
+            assert dict(restored.probe_timeouts)["tcp"] == .75
             assert restored.window.maximized
             assert dict(restored.column_widths)["ip"] == resized
             assert "fixture-secret" not in store.path.read_text(encoding="utf-8")
@@ -116,7 +188,7 @@ def main(capture=False):
             controller.close()
             window.close()
             shiboken6.delete(engine)
-    print("Preferências OK: restauração, cancelar, validação, salvar, sessão ativa e janela maximizada; sem sondas de rede.")
+    print("Preferências OK: perfis TCP, duplicar/remover/cancelar, tempos por sonda, validação atômica, sessão ativa, janela compacta e maximizada; sem sondas de rede.")
 
 
 if __name__ == "__main__":

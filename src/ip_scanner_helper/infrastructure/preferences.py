@@ -9,8 +9,8 @@ from uuid import uuid4
 
 from ip_scanner_helper.domain.preferences import Preferences
 
-SCHEMA_VERSION = 1
-MAX_SETTINGS_BYTES = 64 * 1024
+SCHEMA_VERSION = 2
+MAX_SETTINGS_BYTES = 512 * 1024
 
 
 def default_settings_path():
@@ -25,6 +25,8 @@ class JsonPreferencesStore:
         self.read_only = False
         self.message = ""
         self.recovered_path = None
+        self.migration_backup = None
+        self._loaded_version = SCHEMA_VERSION
 
     def _read(self):
         with self.path.open("rb") as source:
@@ -64,7 +66,8 @@ class JsonPreferencesStore:
             self.read_only = True
             self.message = "Não foi possível ler as preferências. Usando os padrões sem alterar o arquivo."
             return Preferences()
-        if payload["schema_version"] != SCHEMA_VERSION:
+        self._loaded_version = payload["schema_version"]
+        if self._loaded_version not in (1, SCHEMA_VERSION):
             self.read_only = True
             self.message = "Este arquivo de preferências usa uma versão não suportada. Ele será preservado sem alterações."
             return Preferences()
@@ -87,6 +90,18 @@ class JsonPreferencesStore:
         if len(data.encode("utf-8")) > MAX_SETTINGS_BYTES:
             raise ValueError("Arquivo de preferências excede o limite.")
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        if self._loaded_version == 1 and self.path.exists():
+            # Preserve the exact original before the first schema-2 replacement.
+            original = self.path.read_bytes()
+            current = json.loads(original.decode("utf-8-sig"))
+            if len(original) > MAX_SETTINGS_BYTES or not isinstance(current, dict) or current.get("schema_version") != 1:
+                raise OSError("As preferências mudaram durante a migração. Tente novamente.")
+            backup = self.path.with_name(f"settings.v1-backup-{uuid4().hex[:12]}.json")
+            with backup.open("xb") as output:
+                output.write(original)
+                output.flush()
+                os.fsync(output.fileno())
+            self.migration_backup = backup
         temporary = None
         try:
             with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", newline="\n", prefix=".settings-",

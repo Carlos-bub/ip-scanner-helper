@@ -83,6 +83,27 @@ class FakeNetwork:
 
 
 class TcpProbeTests(unittest.TestCase):
+    def test_large_profile_keeps_host_limit_and_does_not_skip_following_batches(self):
+        ports = {number: f"App-{number}" for number in range(20000, 20128)}
+        network = FakeNetwork(ready=ports)
+        budget = SocketBudget(32)
+        result = self.run_probe(network, ports=ports, budget=budget, context=ProbeContext.standalone(2))
+        self.assertEqual(result, [f"{name}({number})" for number, name in ports.items()])
+        self.assertEqual(len(network.sockets), 128)
+        self.assertLessEqual(budget.peak, 13)
+        self.assertEqual(budget.active, 0)
+        self.assertTrue(all(sock.closed for sock in network.sockets))
+
+    def test_large_profile_deadline_keeps_open_ports_and_releases_pending_sockets(self):
+        ports = {number: f"App-{number}" for number in range(20000, 20128)}
+        network = FakeNetwork(results={20000: 0})
+        budget = SocketBudget(32)
+        with self.assertRaises(ProbeTimeout) as error:
+            self.run_probe(network, ports=ports, budget=budget, timeout=1, context=ProbeContext.standalone(.025))
+        self.assertEqual(error.exception.partial, ["App-20000(20000)"])
+        self.assertLess(len(network.sockets), 128)
+        self.assertEqual(budget.active, 0)
+        self.assertTrue(all(sock.closed for sock in network.sockets))
     def test_batch_deadline_closes_pending_connections_and_retains_open_ports(self):
         network = FakeNetwork(results={80: 0})
         budget = SocketBudget(4)

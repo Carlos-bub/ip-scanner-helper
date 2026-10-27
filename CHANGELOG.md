@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.6 — 2026-10-27
+
+- Preferências divididas em Coleta, Perfis TCP e Tempos, mantendo a tabela como tela principal.
+- Perfis Padrão, Infraestrutura, CFTV, Impressão e Servidores; criação, duplicação, edição e remoção de até oito perfis personalizados, com até 128 portas cada.
+- Modelos imutáveis de protocolo, porta e serviço; consultas UDP específicas preservadas separadamente dos perfis TCP.
+- Quinze limites por sonda/lote editáveis e persistentes, com restauração dos padrões e captura imutável na próxima sessão.
+- Schema 2 com migração do schema 1 precedida de backup exato; configurações futuras preservadas para leitura e rollback documentado.
+- Registros finais/exportações incluem perfil e portas TCP previstas, mantendo indicadores de consulta incompleta e portas aceitas antes do prazo.
+- 172 testes aprovados, dois testes gráficos ampliados e cobertura/erros dos 24 cenários simulados preservados com o perfil Padrão.
+
 ## 2.0.5 — 2026-10-27
 
 - Preferências básicas persistentes: janela, colunas e larguras, ordenação, última faixa, referência da interface, modo, concorrência e limite por IP.

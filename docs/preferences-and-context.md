@@ -1,12 +1,12 @@
 # Preferências e contexto de rede
 
-As preferências básicas da versão 2.0.5 ficam em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. O aplicativo lembra tamanho/posição e maximização da janela, colunas visíveis e larguras, ordenação, última faixa, referência da interface, modo de consulta, concorrência e limite por IP. IP e nome permanecem visíveis. As larguras pertencem às chaves das colunas e sobrevivem à ocultação dos campos.
+As preferências ficam em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Desde a versão 2.0.6, além da base entregue na 2.0.5, incluem perfil TCP, perfis personalizados e tempos por sonda/lote. O aplicativo lembra tamanho/posição e maximização da janela, colunas visíveis e larguras, ordenação, última faixa, referência da interface, modo de consulta, concorrência e limite por IP. IP e nome permanecem visíveis. As larguras pertencem às chaves das colunas e sobrevivem à ocultação dos campos.
 
 ## Persistência
 
-O arquivo possui `schema_version: 1` e um objeto `preferences` com campos permitidos explicitamente. Credenciais SNMP/Telnet, resultados, nomes de dispositivos e ambiente não são persistidos nesse arquivo. O caminho é resolvido na composição; o armazenamento recebe um caminho explícito e não faz I/O no construtor. `--demo` e `--self-check` não carregam nem gravam preferências pessoais.
+O arquivo possui `schema_version: 2` e um objeto `preferences` com campos permitidos explicitamente. O schema 1 é carregado com os novos campos nos valores padrão e recebe backup exato antes da migração na gravação. Veja [perfis, tempos e retorno de versão](port-profiles.md). Credenciais SNMP/Telnet, resultados, nomes de dispositivos e ambiente não são persistidos nesse arquivo. O caminho é resolvido na composição; o armazenamento recebe um caminho explícito e não faz I/O no construtor. `--demo` e `--self-check` não carregam nem gravam preferências pessoais.
 
-As escritas usam arquivo temporário no mesmo diretório, `flush`, `fsync` e substituição atômica. A leitura tem limite de 64 KiB e valida tipos, limites, valores finitos e colunas conhecidas. Campos desconhecidos da versão atual são ignorados; campos reconhecidos ausentes usam padrões. Um arquivo inválido é preservado como `settings.invalid-<data>-<identificador>.json` antes de retornar aos padrões. Se não for possível preservá-lo, o aplicativo não o sobrescreve.
+As escritas usam arquivo temporário no mesmo diretório, `flush`, `fsync` e substituição atômica. A leitura tem limite de 512 KiB e valida tipos, limites, valores finitos e colunas conhecidas. Campos desconhecidos da versão atual são ignorados; campos reconhecidos ausentes usam padrões. Um arquivo inválido é preservado como `settings.invalid-<data>-<identificador>.json` antes de retornar aos padrões. Se não for possível preservá-lo, o aplicativo não o sobrescreve.
 
 Uma versão de schema desconhecida permanece intacta e o armazenamento fica somente para leitura. Antes de salvar, o schema em disco é conferido novamente. Falhas são registradas e apresentadas na interface, sem impedir a varredura. Não há sincronização de preferências entre instâncias: quando duas instâncias gravam um schema compatível, prevalece a última gravação.
 
@@ -28,4 +28,4 @@ Quando o ambiente foi informado, o escopo combina seu identificador com o hash d
 
 ## Próximos incrementos
 
-As próximas partes de configurações são perfis de portas, limites específicos por sonda e credenciais em armazenamento protegido separado. Depois, preferências de agrupamento do mapa e histórico. Esta entrega não inclui cofre, tema escuro, agendamento ou vinculação automática de ambientes.
+Perfis TCP e tempos por sonda estão entregues na 2.0.6. As próximas partes são credenciais em armazenamento protegido separado e controle de sondas iniciadas por segundo. Depois, preferências de agrupamento do mapa e histórico. Esta entrega não inclui cofre, tema escuro, agendamento ou vinculação automática de ambientes.

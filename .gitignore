@@ -19,6 +19,25 @@ exports/
 .vscode/
 .idea/
 
+# Network packet captures (sensitive wire data)
+*.pcap
+*.pcapng
+*.cap
+
+# Operating System files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+.DS_Store
+
+# Dynamic local benchmark runs and outputs
+/build/benchmarks/
+*.bak
+*.swp
+*.tmp
+
 # Internal planning and working studies (kept locally)
 /docs/melhorias/
 

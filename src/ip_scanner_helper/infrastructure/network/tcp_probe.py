@@ -7,12 +7,9 @@ from threading import BoundedSemaphore, Lock
 import time
 
 from ip_scanner_helper.application.errors import ProbeTimeout
+from ip_scanner_helper.domain.port_profiles import STANDARD_PROFILE
 
-DEFAULT_TCP_PORTS = {
-    21: "FTP", 22: "SSH", 23: "Telnet", 53: "DNS", 80: "HTTP", 443: "HTTPS",
-    445: "SMB", 5060: "SIP-VoIP", 515: "LPD-Print", 3389: "RDP",
-    8080: "HTTP-Alt", 8443: "HTTPS-Alt", 9100: "RAW-Print",
-}
+DEFAULT_TCP_PORTS = STANDARD_PROFILE.tcp_mapping()
 
 
 class SocketBudget:

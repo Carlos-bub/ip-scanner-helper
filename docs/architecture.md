@@ -43,7 +43,9 @@ flowchart LR
 
 `ScanService` agenda até duas vezes o número de workers em tarefas pendentes. A lista de endereços é validada antes da alocação e possui limite de 4.096 destinos. Assim, a aplicação não materializa uma rede `/8` e não cria uma fila ilimitada de futures.
 
-`ScanTimeouts` centraliza os limites de coleta e é parte das opções imutáveis. `ProbeContext` transporta prazos monotônicos e cancelamento até os adaptadores. O orçamento começa no worker do IP; fila e preparação da sessão ficam fora dele. Consulte [prazos e DNS reverso](scan-timeouts.md) para os limites cooperativos, resultados inconclusivos e liberação de callbacks tardias.
+`ScanTimeouts`, em `domain/scan_policy.py`, centraliza os limites de coleta e é parte das opções imutáveis. A importação anterior por `application.timing` continua disponível. `ProbeContext`, na aplicação, transporta prazos monotônicos e cancelamento até os adaptadores. O orçamento começa no worker do IP; fila e preparação da sessão ficam fora dele. Consulte [prazos e DNS reverso](scan-timeouts.md) para os limites cooperativos, resultados inconclusivos e liberação de callbacks tardias.
+
+`ServicePort` e `PortProfile`, no domínio, validam protocolo, número, descrição, identidade e limites dos perfis. A infraestrutura TCP recebe somente o mapa de portas da sessão; consultas UDP continuam em coletores específicos. As preferências persistem os perfis personalizados e o perfil escolhido, mas os workers recebem uma configuração imutável antes da execução. O diálogo QML mantém rascunhos das três abas e os envia para validação conjunta. A migração de schema pertence ao armazenamento JSON, com backup anterior à substituição. Ver [perfis e tempos](port-profiles.md).
 
 Cada execução recebe um identificador próprio e seu próprio evento de cancelamento. O serviço não aceita sobreposição. O consumidor descarta eventos de outras sessões. A parada cancela tarefas pendentes e solicita cancelamento às demais entre as operações de rede. Ela não interrompe uma função nativa no meio da chamada.
 
@@ -101,4 +103,4 @@ O comando instalado `ip-scanner-helper` e `python -m ip_scanner_helper` utilizam
 
 `scripts/build_windows.py` constrói a distribuição versionada e executa `--self-check` com dados fictícios, a partir de uma pasta diferente das fontes. A versão do executável vem de `pyproject.toml`. O empacotamento só aceita um build cujo hash do executável e das fontes coincide com o registro de validação.
 
-Histórico e agrupamentos futuros devem seguir as mesmas dependências: regras no domínio, coordenação na aplicação, persistência ou coleta na infraestrutura e interação na apresentação. As preferências básicas já usam essas fronteiras; perfis de portas e armazenamento protegido de credenciais permanecem pendentes.
+Histórico e agrupamentos futuros devem seguir as mesmas dependências: regras no domínio, coordenação na aplicação, persistência ou coleta na infraestrutura e interação na apresentação. Preferências, perfis TCP e tempos já usam essas fronteiras; armazenamento protegido de credenciais e controle de taxa permanecem pendentes.

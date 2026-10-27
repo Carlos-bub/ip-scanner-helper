@@ -30,7 +30,7 @@ class PreferencesStoreTests(unittest.TestCase):
         self.store.save(expected)
         self.assertEqual(JsonPreferencesStore(self.path).load(), expected)
         payload = json.loads(self.path.read_text(encoding="utf-8"))
-        self.assertEqual(payload["schema_version"], 1)
+        self.assertEqual(payload["schema_version"], 2)
         self.assertEqual(set(payload["preferences"]), set(expected.to_dict()))
         self.assertFalse(list(self.path.parent.glob("*.tmp")))
 
@@ -72,3 +72,32 @@ class PreferencesStoreTests(unittest.TestCase):
             with self.assertRaises(PermissionError):
                 self.store.save(Preferences())
         self.assertTrue(self.path.exists())
+
+    def test_schema_one_is_backed_up_exactly_before_migration(self):
+        original = '{"schema_version":1,"preferences":{"workers":9,"last_target":"192.0.2.1"}}'
+        self.write(original)
+        preferences = self.store.load()
+        self.assertEqual(preferences.workers, 9)
+        self.assertEqual(preferences.port_profile_id, "standard")
+        self.assertEqual(self.path.read_text(encoding="utf-8"), original)
+        self.store.save(preferences)
+        backup = self.store.migration_backup
+        self.assertEqual(backup.read_text(encoding="utf-8"), original)
+        self.assertEqual(json.loads(self.path.read_text(encoding="utf-8"))["schema_version"], 2)
+        self.assertEqual(JsonPreferencesStore(self.path).load(), preferences)
+        self.store.save(preferences)
+        self.assertEqual(len(list(self.path.parent.glob("settings.v1-backup-*.json"))), 1)
+
+    def test_migration_backup_failure_preserves_original_schema_one(self):
+        original = '{"schema_version":1,"preferences":{"workers":9}}'
+        self.write(original)
+        preferences = self.store.load()
+        real_open = Path.open
+        def fail_backup(path, *args, **kwargs):
+            if ".v1-backup-" in path.name:
+                raise PermissionError("simulado")
+            return real_open(path, *args, **kwargs)
+        with patch.object(Path, "open", fail_backup):
+            with self.assertRaises(OSError):
+                self.store.save(preferences)
+        self.assertEqual(self.path.read_text(encoding="utf-8"), original)

@@ -119,6 +119,7 @@ ApplicationWindow {
                     AppField { id: targetTimeout; objectName: "targetTimeoutField"; text: "20"; Layout.preferredWidth: 64; validator: DoubleValidator { bottom: 0.01; top: 300; decimals: 2; locale: "C" } enabled: !root.state.scanning; onEditingFinished: root.rememberScanDefaults() }
                     Text { text: "Ao atingir o limite, os dados encontrados são preservados."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap }
                 }
+                Text { visible: advanced.visible; text: "Perfil TCP: " + root.state.portProfile + " · " + root.state.portCount + " portas. Ajuste em Preferências."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap; textFormat: Text.PlainText }
                 RowLayout {
                     visible: advanced.visible; Layout.fillWidth: true; spacing: 12
                     Text { text: "Ambiente (opcional)"; color: Theme.muted; font.pixelSize: 12 }
@@ -344,7 +345,7 @@ ApplicationWindow {
             }
         }
     }
-    PreferencesDialog { id: preferencesDialog; anchors.centerIn: parent; width: Math.min(560, root.width - 60) }
+    PreferencesDialog { id: preferencesDialog; anchors.centerIn: parent; width: Math.min(820, root.width - 60); height: Math.min(680, root.height - 60) }
     Menu {
         id: rowMenu
         MenuItem { text: "Detalhes"; onTriggered: scanner.openDetails() }

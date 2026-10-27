@@ -23,6 +23,8 @@ from ip_scanner_helper.application.scan_service import ScanService
 from ip_scanner_helper.application.ports import DesktopServices, PreferencesStore
 from ip_scanner_helper.domain.preferences import Preferences
 from ip_scanner_helper.domain.network_context import NetworkContext
+from ip_scanner_helper.domain.port_profiles import BUILTIN_PROFILES, PortProfile
+from ip_scanner_helper.domain.scan_policy import PROBE_TIMEOUT_DEFAULTS
 from ip_scanner_helper.resources import RESOURCE_ROOT
 from ip_scanner_helper.application.scanner import ScanOptions
 from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ScanTimeouts
@@ -83,6 +85,7 @@ class ScannerController(QObject):
             "scanMetrics": {},
             "targetTimeout": self._preferences.target_timeout, "workers": self._preferences.workers,
             "mode": self._preferences.mode, "preferencesError": "", "environmentName": "", "networkContext": {},
+            "portProfile": self._preferences.port_profile.name, "portCount": len(self._preferences.port_profile.ports),
             "limitedCount": 0, "limitedTargetsText": "",
         }
         self.save_timer = QTimer(self)
@@ -173,13 +176,27 @@ class ScannerController(QObject):
 
     @Slot(result="QVariantMap")
     def preferencesDraft(self):
-        return self.preferences_snapshot().to_dict()
+        prefs = self.preferences_snapshot()
+        draft = prefs.to_dict()
+        draft["profile_catalog"] = [{"id": p.id, "name": p.name, "ports_text": p.ports_text(), "builtin": p in BUILTIN_PROFILES}
+                                    for p in (*BUILTIN_PROFILES, *prefs.custom_port_profiles)]
+        draft["timeout_catalog"] = [{"key": key, "value": dict(prefs.probe_timeouts)[key], "default": value}
+                                    for key, value in PROBE_TIMEOUT_DEFAULTS]
+        return draft
 
     @Slot("QVariantMap", result=bool)
     def applyPreferences(self, values):
         try:
             merged = self.preferences_snapshot().to_dict()
-            merged.update({key: values[key] for key in ("mode", "workers", "target_timeout") if key in values})
+            merged.update({key: values[key] for key in ("mode", "workers", "target_timeout", "port_profile_id", "probe_timeouts") if key in values})
+            if "custom_port_profiles" in values:
+                profiles = values["custom_port_profiles"]
+                if not isinstance(profiles, list):
+                    raise ValueError("Perfis personalizados inválidos.")
+                merged["custom_port_profiles"] = [PortProfile.from_text(p.get("id"), p.get("name"), p.get("ports_text")).to_dict()
+                                                   for p in profiles if isinstance(p, dict)]
+                if len(profiles) != len(merged["custom_port_profiles"]):
+                    raise ValueError("Perfil personalizado inválido.")
             # JavaScript numbers arrive through QVariantMap as doubles.
             if isinstance(merged["workers"], float) and merged["workers"].is_integer():
                 merged["workers"] = int(merged["workers"])
@@ -189,7 +206,8 @@ class ScannerController(QObject):
             self._publish()
             return False
         self._preferences = preferences
-        self._data.update(mode=preferences.mode, workers=preferences.workers, targetTimeout=preferences.target_timeout)
+        self._data.update(mode=preferences.mode, workers=preferences.workers, targetTimeout=preferences.target_timeout,
+                          portProfile=preferences.port_profile.name, portCount=len(preferences.port_profile.ports))
         self.settingsChanged.emit()
         self._publish()
         return self.save_preferences()
@@ -302,7 +320,8 @@ class ScannerController(QObject):
             context = NetworkContext.for_scan(self._data["target"], interface, environment_label=label,
                                               environment_confirmed=bool(label))
             options = ScanOptions(community=community.strip(), workers=workers, mode=self._data.get("mode", "Completo"),
-                                  timeouts=ScanTimeouts(target_s=target_timeout), network_context=context)
+                                  timeouts=ScanTimeouts(target_s=target_timeout, **dict(self._preferences.probe_timeouts)),
+                                  network_context=context, port_profile=self._preferences.port_profile)
             self._session = self.service.start(targets, options)
         except (ValueError, RuntimeError) as exc:
             self.notice.emit("Não foi possível iniciar", str(exc))

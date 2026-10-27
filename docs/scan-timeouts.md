@@ -40,7 +40,7 @@ options = ScanOptions(
 )
 ```
 
-Preferências persistentes e edição de todos os timeouts pela interface pertencem à próxima etapa. A comunidade SNMP continua sendo capturada somente na configuração da sessão.
+Desde a versão 2.0.6, os limites por sonda/lote são editáveis e persistentes em Preferências → Tempos. O limite total por IP continua em Coleta/Opções. A comunidade SNMP é capturada somente na configuração da sessão. Veja [perfis TCP e tempos](port-profiles.md).
 
 ## Resultados incompletos
 

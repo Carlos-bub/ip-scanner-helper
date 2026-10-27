@@ -26,6 +26,7 @@ Um [exemplo de mapa HTML](docs/demo-topology.html) está incluído: baixe o arqu
 - Filtros de categoria, sem nome, sem MAC e categoria não identificada; busca por serviço e sem distinção de acentos.
 - Colunas configuráveis, larguras ajustáveis e ordenação numérica de IP e latência, mantendo medições ausentes ao final.
 - Preferências persistentes de janela, tabela, última faixa e parâmetros de coleta; rascunho com salvar/cancelar e validação.
+- Cinco perfis TCP incluídos e até oito personalizados; quinze tempos por sonda/lote ajustáveis, aplicados à próxima sessão.
 - Contexto de rede capturado por sessão, com ambiente opcional explícito e isolamento entre redes que usam a mesma faixa.
 - Opções avançadas recolhidas, tempo decorrido e consulta dos erros da execução.
 - Entrada por IP, faixa ou CIDR, com validação antes de expandir a lista e limite de 4.096 alvos.
@@ -67,6 +68,8 @@ Em **Preferências**, defina modo, concorrência e limite por IP para a próxima
 
 O campo **Ambiente**, em Opções, permite dar um nome exclusivo à rede desta coleta. Ele começa vazio ao abrir o aplicativo. Sem ambiente informado, cada sessão fica isolada; o mesmo CIDR não estabelece a identidade de uma rede. Essa base prepara o histórico futuro, que ainda não está implementado.
 
+As abas **Perfis TCP** e **Tempos** permitem escolher o escopo de portas e os limites das sondas. Duplique um perfil incluído ou crie um personalizado, com uma porta por linha. As consultas UDP específicas, como SNMP, continuam separadas. A migração das configurações 2.0.5 cria um backup antes de gravar o novo schema. Veja [perfis, tempos e retorno de versão](docs/port-profiles.md).
+
 Selecione uma linha e use **Detalhes**, duplo clique ou `Enter` para abrir o painel lateral. Apenas selecionar uma linha mantém a tabela inteira visível. As abas distinguem a origem do nome da confiança da categoria. Use **Colunas** para escolher os campos; IP e nome permanecem disponíveis. Arraste a borda do cabeçalho para ajustar larguras. O botão direito reúne as ações de cópia, acesso e mapeamento de portas. Atalhos: `Ctrl+F` busca, setas navegam, `Enter` abre detalhes e `Esc` limpa os filtros. Veja os [detalhes sob demanda](docs/desktop-details.png), a [janela compacta](docs/desktop-compact.png) e o [mapeamento de switch](docs/desktop-switch.png).
 
 O modo **Rápido** verifica presença, portas TCP comuns, SNMP, DNS e NetBIOS. O modo **Completo** acrescenta as sondas de identificação especializadas. O inventário exibe apenas equipamentos com resposta atual a pelo menos um dos métodos de presença.
@@ -89,7 +92,7 @@ O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, 
 
 ## Gerar o executável
 
-A [validação 2.0.5](docs/validation-2.0.5.md) registra a persistência, os contextos de rede e os fluxos gráficos desta versão.
+A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migração. A [validação 2.0.5](docs/validation-2.0.5.md) registra a base de persistência e contexto de rede.
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -e ".[build]"
@@ -97,11 +100,11 @@ A [validação 2.0.5](docs/validation-2.0.5.md) registra a persistência, os con
 .venv\Scripts\python.exe scripts/package_release.py
 ```
 
-Saída: `dist/portfolio/2.0.5/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
+Saída: `dist/portfolio/2.0.6/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
 
 ```powershell
-dist\portfolio\2.0.5\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
-dist\portfolio\2.0.5\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
+dist\portfolio\2.0.6\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
+dist\portfolio\2.0.6\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
 ```
 
 Para gerar os artefatos públicos da demonstração:

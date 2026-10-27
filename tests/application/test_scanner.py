@@ -7,11 +7,36 @@ from unittest.mock import patch
 from ip_scanner_helper.application.scanner import ScanCancelled, ScanOptions, classify_device, scan_device
 
 from ip_scanner_helper.infrastructure.network.resolver import NetworkResolver
+from ip_scanner_helper.domain.port_profiles import PortProfile
+from ip_scanner_helper.application.timing import ScanTimeouts
 
 scan_device = partial(scan_device, resolver=NetworkResolver())
 
 
 class ScannerTests(unittest.TestCase):
+    def test_custom_profile_reaches_tcp_and_does_not_remove_udp_snmp_presence(self):
+        profile = PortProfile.from_text("custom-lab", "Lab", "8088 Minha aplicação")
+        self.mocks["query_snmp"].return_value = ("sw-lab", "Managed switch", "SNMP v2c")
+        options = ScanOptions(mode="Rápido", port_profile=profile, timeouts=ScanTimeouts(tcp=.7, snmp=.8, dns_ptr=1.2))
+        device = scan_device("192.0.2.8", options, Event(), {})
+        self.assertEqual(self.mocks["scan_ports"].call_args.kwargs["ports"], {8088: "Minha aplicação"})
+        self.assertEqual(self.mocks["scan_ports"].call_args.kwargs["timeout"], .7)
+        self.assertEqual(self.mocks["query_snmp"].call_args.kwargs["timeout"], .8)
+        self.assertEqual(self.mocks["query_dns_ptr"].call_args.kwargs["timeout"], 1.2)
+        self.assertEqual(device["tipo"], "Switch")
+        self.assertEqual(device["portas_previstas_tcp"], [8088])
+        self.assertIn("do perfil", device["portas"])
+
+    def test_custom_description_does_not_trigger_http_or_confirm_category(self):
+        self.mocks["scan_ports"].return_value = ["Câmera(8088)"]
+        profile = PortProfile.from_text("custom-lab", "Lab", "8088 Câmera")
+        with patch.object(NetworkResolver, "query_http_title") as http, \
+             patch.object(NetworkResolver, "query_sip_voip", return_value=None), \
+             patch.object(NetworkResolver, "query_ssdp_device", return_value=None):
+            device = scan_device("192.0.2.8", ScanOptions(port_profile=profile), Event(), {})
+        http.assert_not_called()
+        self.assertEqual(device["tipo"], "Dispositivo não identificado")
+
     def setUp(self):
         stack = ExitStack()
         self.addCleanup(stack.close)

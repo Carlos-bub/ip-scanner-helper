@@ -13,6 +13,35 @@ from ip_scanner_helper.presentation.qt_controller import ScannerController
 
 
 class DesktopPreferencesTests(unittest.TestCase):
+    def test_profile_and_probe_changes_only_affect_the_next_session(self):
+        c, service, store = self.controller()
+        c.setTarget("192.0.2.1")
+        c.startScan("private", 2, 10)
+        active = service.start.call_args.args[1]
+        draft = {"port_profile_id": "custom-lab", "custom_port_profiles": [
+            {"id": "custom-lab", "name": "Lab", "ports_text": "8088 Minha aplicação"}],
+            "probe_timeouts": {"snmp": 1.5, "tcp": .9}}
+        self.assertTrue(c.applyPreferences(draft))
+        self.assertEqual(active.port_profile.id, "standard")
+        self.assertEqual(active.timeouts.snmp, .35)
+        self.assertEqual(c.state["portProfile"], "Lab")
+        saved = store.save.call_args.args[0]
+        self.assertEqual(saved.port_profile.tcp_mapping(), {8088: "Minha aplicação"})
+        c._data["scanning"] = False
+        c.startScan("private", 2, 10)
+        following = service.start.call_args.args[1]
+        self.assertEqual(following.timeouts.snmp, 1.5)
+        self.assertEqual(following.timeouts.tcp, .9)
+        self.assertEqual(following.timeouts.target_s, 10)
+        self.assertEqual(following.port_profile.id, "custom-lab")
+
+    def test_bad_profile_does_not_partially_change_collection_defaults(self):
+        c, _, store = self.controller()
+        self.assertFalse(c.applyPreferences({"workers": 5, "port_profile_id": "custom-lab", "custom_port_profiles": [
+            {"id": "custom-lab", "name": "Lab", "ports_text": "80 HTTP\n80 Outra"}]}))
+        self.assertEqual(c.state["workers"], 32)
+        self.assertEqual(c.preferences_snapshot().port_profile_id, "standard")
+        store.save.assert_not_called()
     @classmethod
     def setUpClass(cls):
         cls.app = QCoreApplication.instance() or QCoreApplication([])

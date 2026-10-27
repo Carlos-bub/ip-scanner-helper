@@ -511,9 +511,9 @@ class NetworkResolver:
         return None
 
     @staticmethod
-    def scan_ports(ip, timeout=DEFAULT_TIMEOUTS.tcp, cancel_event=None, *, context=None):
+    def scan_ports(ip, timeout=DEFAULT_TIMEOUTS.tcp, cancel_event=None, *, ports=None, context=None):
         """Testa o mesmo perfil de portas com concorrência e sockets limitados."""
-        return scan_tcp_ports(ip, timeout=timeout, cancel_event=cancel_event, context=context)
+        return scan_tcp_ports(ip, ports=ports, timeout=timeout, cancel_event=cancel_event, context=context)
 
     @staticmethod
     def obter_mac_e_presenca_windows(ip, *, context=None):

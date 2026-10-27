@@ -10,6 +10,7 @@ from ip_scanner_helper.application.observations import ProbeRecorder, ScanCancel
 from ip_scanner_helper.application.ports import NetworkProbe
 from ip_scanner_helper.domain.classification import classify_device
 from ip_scanner_helper.domain.network_context import NetworkContext
+from ip_scanner_helper.domain.port_profiles import PortProfile, STANDARD_PROFILE
 from ip_scanner_helper.application.errors import ProbeTimeout, ScanIncomplete, TargetBudgetExceeded
 from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ProbeContext, ScanTimeouts
 
@@ -22,8 +23,11 @@ class ScanOptions:
     probe_metrics: bool = False
     timeouts: ScanTimeouts = DEFAULT_TIMEOUTS
     network_context: NetworkContext | None = None
+    port_profile: PortProfile = STANDARD_PROFILE
 
     def __post_init__(self):
+        if not isinstance(self.port_profile, PortProfile):
+            raise ValueError("Perfil de portas inválido.")
         if not 1 <= self.workers <= 128:
             raise ValueError("Use entre 1 e 128 tarefas simultâneas.")
         if self.mode not in ("Rápido", "Completo"):
@@ -105,7 +109,7 @@ def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolve
         if ping_active:
             evidence.append("ICMP: resposta atual")
             publish_presence()
-        ports = probe("tcp", resolver.scan_ports, ip, cancel_event=cancelled)
+        ports = probe("tcp", resolver.scan_ports, ip, ports=options.port_profile.tcp_mapping(), cancel_event=cancelled)
         if ports:
             evidence.append("TCP: conexão aceita")
             publish_presence()
@@ -171,7 +175,10 @@ def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolve
                      else latency or "Não medida"),
         "latencia_ms": latency if isinstance(latency, (float, int)) else None,
         "mac": mac or "Desconhecido", "origem_mac": mac_source,
-        "portas": " · ".join(ports) or ("Nenhuma porta TCP padrão respondeu" if "tcp" in completed_probes else "Consulta TCP incompleta"),
+        "portas": " · ".join(ports) or (("Nenhuma porta TCP padrão respondeu" if options.port_profile.id == "standard"
+                                        else "Nenhuma porta TCP do perfil respondeu") if "tcp" in completed_probes else "Consulta TCP incompleta"),
+        "perfil_portas": {"id": options.port_profile.id, "nome": options.port_profile.name},
+        "portas_previstas_tcp": [port.number for port in options.port_profile.ports],
         "origem": source, "confianca": confidence, "evidencia_categoria": reason,
         "evidencias": evidence, "status": (
             "Limite por IP atingido; identificação incompleta" if "Limite por IP atingido" in incomplete.values()
