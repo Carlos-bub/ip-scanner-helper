@@ -9,6 +9,12 @@ from ip_scanner_helper.infrastructure.network.interfaces import discover_interfa
 from ip_scanner_helper.infrastructure.network.resolver import NetworkResolver
 from ip_scanner_helper.infrastructure.network.switch_port_mapper import SwitchPortMapper
 from ip_scanner_helper.infrastructure.preferences import JsonPreferencesStore, default_settings_path
+from ip_scanner_helper.infrastructure.credential_vault import EncryptedCredentialVault
+from ip_scanner_helper.infrastructure.windows_dpapi import WindowsDPAPI
+
+
+def create_credential_vault():
+    return EncryptedCredentialVault(default_settings_path().with_name("credentials.vault"), WindowsDPAPI())
 
 
 def create_preferences_store():

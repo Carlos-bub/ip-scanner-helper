@@ -10,6 +10,7 @@ Dialog {
     closePolicy: Popup.CloseOnEscape
     property bool showError: false
     property int currentTab: 0
+    property int requestedTab: 0
     property var profiles: []
     property var times: []
     property int editingIndex: -1
@@ -49,14 +50,16 @@ Dialog {
         mode.currentIndex = draft.mode === "Rápido" ? 0 : 1;
         workers.text = String(draft.workers);
         timeout.text = String(draft.target_timeout);
+        probeRate.text = String(draft.probe_rate_limit);
         profiles = JSON.parse(JSON.stringify(draft.profile_catalog));
         times = JSON.parse(JSON.stringify(draft.timeout_catalog));
         let selected = profiles.findIndex(function(profile) { return profile.id === draft.port_profile_id; });
         profileCombo.currentIndex = Math.max(0, selected);
         loadProfile(profileCombo.currentIndex);
-        currentTab = 0;
+        currentTab = requestedTab;
         showError = false;
     }
+    onClosed: vaultPane.clearSecret()
     background: Rectangle { color: "white"; radius: 10; border.color: Theme.border }
     contentItem: ColumnLayout {
         spacing: 16
@@ -65,7 +68,7 @@ Dialog {
         RowLayout {
             Layout.fillWidth: true; spacing: 6
             Repeater {
-                model: ["Coleta", "Perfis TCP", "Tempos"]
+                model: ["Coleta", "Perfis TCP", "Tempos", "Cofre SNMP"]
                 delegate: AppButton {
                     required property int index
                     required property string modelData
@@ -103,6 +106,14 @@ Dialog {
                         }
                     }
                     Text { text: "O perfil TCP define quais portas serão consultadas. O modo Completo acrescenta identificação especializada nos serviços conhecidos."; Layout.fillWidth: true; wrapMode: Text.Wrap; color: Theme.muted; font.pixelSize: 13 }
+                    Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.border }
+                    ColumnLayout {
+                        spacing: 7; Layout.fillWidth: true
+                        Text { text: "Sondas por segundo · 0 a 1.000"; color: Theme.ink; font.pixelSize: 13 }
+                        AppField { id: probeRate; objectName: "preferenceProbeRate"; Layout.fillWidth: true; maximumLength: 4; validator: IntValidator { bottom: 0; top: 1000 } }
+                        Text { text: "0 desativa o limite. O valor é compartilhado por todos os IPs da varredura e espaça o início dos coletores, como ICMP, TCP e SNMP."; Layout.fillWidth: true; wrapMode: Text.Wrap; color: Theme.muted; font.pixelSize: 12 }
+                        Text { text: "Uma consulta TCP pode testar várias portas; tentativas internas e pacotes não são limitados individualmente. A espera conta no limite por IP e pode deixar a coleta incompleta. O mapeamento de switches é uma operação separada."; Layout.fillWidth: true; wrapMode: Text.Wrap; color: Theme.muted; font.pixelSize: 12 }
+                    }
                     Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.border }
                     Text { text: "Janela, colunas, ordenação e última faixa são lembradas automaticamente. Credenciais e resultados não são salvos nas preferências."; Layout.fillWidth: true; wrapMode: Text.Wrap; color: Theme.muted; font.pixelSize: 12 }
                 }
@@ -182,19 +193,22 @@ Dialog {
                     }
                 }
             }
+            CredentialVaultPane { id: vaultPane }
         }
-        Text { visible: dialog.showError; text: scanner.state.preferencesError; Layout.fillWidth: true; wrapMode: Text.Wrap; color: "#b33a36"; font.pixelSize: 12; textFormat: Text.PlainText }
+        Text { visible: dialog.showError && dialog.currentTab !== 3; text: scanner.state.preferencesError; Layout.fillWidth: true; wrapMode: Text.Wrap; color: "#b33a36"; font.pixelSize: 12; textFormat: Text.PlainText }
         RowLayout {
             Layout.fillWidth: true; spacing: 10
             Item { Layout.fillWidth: true }
-            AppButton { objectName: "preferencesCancel"; text: "Cancelar"; onClicked: dialog.close() }
+            AppButton { objectName: "preferencesCancel"; text: dialog.currentTab === 3 ? "Fechar" : "Cancelar"; onClicked: dialog.close() }
             AppButton {
                 objectName: "preferencesSave"; text: "Salvar preferências"; variant: "primary"
+                visible: dialog.currentTab !== 3
                 onClicked: {
                     dialog.storeEditor();
                     let timeValues = {};
                     dialog.times.forEach(function(entry) { timeValues[entry.key] = Number(entry.value); });
                     let values = {mode: mode.currentText, workers: Number(workers.text), target_timeout: Number(timeout.text),
+                                  probe_rate_limit: probeRate.text.trim() === "" ? -1 : Number(probeRate.text),
                                   port_profile_id: dialog.profiles[profileCombo.currentIndex].id,
                                   custom_port_profiles: dialog.profiles.filter(function(profile) { return !profile.builtin; }),
                                   probe_timeouts: timeValues};

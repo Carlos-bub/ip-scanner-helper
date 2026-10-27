@@ -4,7 +4,7 @@
 
 Cada IP recebe um orçamento cooperativo de **20 segundos**, contado quando seu worker começa a executar. Em **Opções → Limite por IP (s)**, a interface aceita de 1 a 120 segundos. A política Python aceita números positivos até 300 segundos e fica imutável durante a sessão.
 
-Fila de agendamento, descoberta inicial de interfaces e leitura do cache ARP da sessão não fazem parte desse prazo por IP. O tempo total da varredura depende do número de alvos, workers, capacidade de sockets e respostas dos equipamentos.
+Fila de agendamento, descoberta inicial de interfaces e leitura do cache ARP da sessão não fazem parte desse prazo por IP. Desde a 2.0.8, a espera pelo [controle de sondas por segundo](probe-rate-limit.md) consome o prazo do IP; o prazo específico do coletor começa após a admissão. O tempo total da varredura depende do número de alvos, workers, capacidade de sockets e respostas dos equipamentos.
 
 `application/timing.py` centraliza os timeouts em `ScanTimeouts`. `ProbeContext` usa relógio monotônico, evento de cancelamento e prazos absolutos. O timeout entregue ao socket ou subprocesso é limitado pelo tempo restante. Requisições, portas e etapas de I/O subsequentes não renovam o orçamento.
 

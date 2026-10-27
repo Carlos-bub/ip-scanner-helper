@@ -1,6 +1,6 @@
 """Device discovery orchestrated through an injected network probe."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from threading import Event
 import time
@@ -13,19 +13,23 @@ from ip_scanner_helper.domain.network_context import NetworkContext
 from ip_scanner_helper.domain.port_profiles import PortProfile, STANDARD_PROFILE
 from ip_scanner_helper.application.errors import ProbeTimeout, ScanIncomplete, TargetBudgetExceeded
 from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ProbeContext, ScanTimeouts
+from ip_scanner_helper.application.rate_limit import ProbeRateLimiter
+from ip_scanner_helper.domain.scan_policy import validate_probe_rate
 
 
 @dataclass(frozen=True)
 class ScanOptions:
-    community: str = "public"
+    community: str = field(default="public", repr=False)
     workers: int = 32
     mode: str = "Completo"
     probe_metrics: bool = False
     timeouts: ScanTimeouts = DEFAULT_TIMEOUTS
     network_context: NetworkContext | None = None
     port_profile: PortProfile = STANDARD_PROFILE
+    probe_rate_limit: int = 0
 
     def __post_init__(self):
+        validate_probe_rate(self.probe_rate_limit)
         if not isinstance(self.port_profile, PortProfile):
             raise ValueError("Perfil de portas inválido.")
         if not 1 <= self.workers <= 128:
@@ -43,12 +47,13 @@ class ScanOptions:
 
 
 def scan_device(ip: str, options: ScanOptions, cancelled: Event, arp_cache: dict, *,
-                resolver: NetworkProbe, observer=None, on_discovery=None, clock=time.monotonic):
+                resolver: NetworkProbe, observer=None, on_discovery=None, clock=time.monotonic, rate_limiter=None):
+    limiter = rate_limiter if rate_limiter is not None else ProbeRateLimiter(options.probe_rate_limit, clock=clock)
     with ProbeRecorder(cancelled, observer) as recorder:
-        return _scan_device(ip, options, cancelled, arp_cache, recorder.call, on_discovery, resolver, clock)
+        return _scan_device(ip, options, cancelled, arp_cache, recorder.call, on_discovery, resolver, clock, limiter)
 
 
-def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolver, clock):
+def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolver, clock, limiter):
     evidence, incomplete = [], {}
     published = False
     mac, latency = None, None
@@ -60,12 +65,15 @@ def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolve
     record_probe = probe
 
     def probe(name, function, *args, **kwargs):
-        context = budget.child(options.timeouts.budget(name, kwargs.get("ports", ())))
-        kwargs["context"] = context
         if name != "arp":
             kwargs["timeout"] = getattr(options.timeouts, name)
 
         def collect():
+            limiter.acquire(budget)
+            # Admission consumes the target budget. Start the collector's own
+            # timeout only after admission, bounded by that same target deadline.
+            context = budget.child(options.timeouts.budget(name, kwargs.get("ports", ())))
+            kwargs["context"] = context
             context.check()
             return function(*args, **kwargs)
 

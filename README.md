@@ -27,6 +27,7 @@ Um [exemplo de mapa HTML](docs/demo-topology.html) está incluído: baixe o arqu
 - Colunas configuráveis, larguras ajustáveis e ordenação numérica de IP e latência, mantendo medições ausentes ao final.
 - Preferências persistentes de janela, tabela, última faixa e parâmetros de coleta; rascunho com salvar/cancelar e validação.
 - Cinco perfis TCP incluídos e até oito personalizados; quinze tempos por sonda/lote ajustáveis, aplicados à próxima sessão.
+- Cofre de comunidades SNMP protegido por DPAPI do usuário do Windows, com seleção explícita e ambiente opcional.
 - Contexto de rede capturado por sessão, com ambiente opcional explícito e isolamento entre redes que usam a mesma faixa.
 - Opções avançadas recolhidas, tempo decorrido e consulta dos erros da execução.
 - Entrada por IP, faixa ou CIDR, com validação antes de expandir a lista e limite de 4.096 alvos.
@@ -64,11 +65,15 @@ O atalho de desenvolvimento `scripts\executar.cmd` usa o mesmo ambiente virtual 
 
 Na aplicação, selecione uma interface ou informe a faixa manualmente, escolha o modo e inicie a varredura. Comunidade SNMP, consultas simultâneas e limite de tempo por IP ficam em **Opções**. O padrão é 20 segundos por alvo; ao atingir o limite, os dados confirmados permanecem na tabela e os endereços afetados aparecem em **N incompletas** no rodapé. Em janelas compactas, a seleção de interface também fica nessa área. A interface selecionada sugere a faixa e identifica o gateway local; as rotas do Windows determinam a interface efetivamente utilizada pelas sondas.
 
-Em **Preferências**, defina modo, concorrência e limite por IP para a próxima varredura. A janela, colunas, larguras, ordenação e última faixa são lembradas automaticamente em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Credenciais e resultados ficam fora desse arquivo. Demonstração e autoverificação não leem nem gravam as preferências pessoais. Veja a [tela de preferências](docs/desktop-preferences.png) e o [contrato de persistência e contexto](docs/preferences-and-context.md).
+Em **Preferências**, defina modo, concorrência, limite por IP e sondas por segundo para a próxima varredura. A janela, colunas, larguras, ordenação e última faixa são lembradas automaticamente em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Credenciais e resultados ficam fora desse arquivo. Demonstração e autoverificação não leem nem gravam as preferências pessoais. Veja a [tela de preferências](docs/desktop-preferences.png) e o [contrato de persistência e contexto](docs/preferences-and-context.md).
+
+Em **Coleta → Sondas por segundo**, use 0 para desativar ou um valor de 1 a 1.000 para espaçar o início dos coletores de todos os IPs da sessão. A espera respeita o prazo por IP e pode resultar em coleta incompleta. Uma consulta TCP pode testar várias portas; o valor não representa pacotes por segundo. Veja o [alcance do controle](docs/probe-rate-limit.md).
 
 O campo **Ambiente**, em Opções, permite dar um nome exclusivo à rede desta coleta. Ele começa vazio ao abrir o aplicativo. Sem ambiente informado, cada sessão fica isolada; o mesmo CIDR não estabelece a identidade de uma rede. Essa base prepara o histórico futuro, que ainda não está implementado.
 
 As abas **Perfis TCP** e **Tempos** permitem escolher o escopo de portas e os limites das sondas. Duplique um perfil incluído ou crie um personalizado, com uma porta por linha. As consultas UDP específicas, como SNMP, continuam separadas. A migração das configurações 2.0.5 cria um backup antes de gravar o novo schema. Veja [perfis, tempos e retorno de versão](docs/port-profiles.md).
+
+Em **Cofre SNMP**, cadastre a comunidade e selecione **Usar na próxima coleta**. O campo fica vazio ao editar; deixá-lo vazio mantém o segredo anterior. As operações do cofre são salvas pelos próprios botões. Em Opções, escolha a credencial ou **Entrada manual**. O `settings.json` guarda somente seu identificador; o arquivo protegido é separado. Veja [uso, proteção e recuperação do cofre](docs/credential-vault.md) e a [tela](docs/desktop-credential-vault.png).
 
 Selecione uma linha e use **Detalhes**, duplo clique ou `Enter` para abrir o painel lateral. Apenas selecionar uma linha mantém a tabela inteira visível. As abas distinguem a origem do nome da confiança da categoria. Use **Colunas** para escolher os campos; IP e nome permanecem disponíveis. Arraste a borda do cabeçalho para ajustar larguras. O botão direito reúne as ações de cópia, acesso e mapeamento de portas. Atalhos: `Ctrl+F` busca, setas navegam, `Enter` abre detalhes e `Esc` limpa os filtros. Veja os [detalhes sob demanda](docs/desktop-details.png), a [janela compacta](docs/desktop-compact.png) e o [mapeamento de switch](docs/desktop-switch.png).
 
@@ -82,6 +87,7 @@ O botão Parar solicita o cancelamento cooperativo. O DNS nativo aceita solicita
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 .venv\Scripts\python.exe scripts/smoke_ui.py
 .venv\Scripts\python.exe scripts/smoke_preferences.py
+.venv\Scripts\python.exe scripts/smoke_vault.py
 ```
 
 Os testes unitários e de regressão usam respostas simuladas. Cobrem BER/SNMP, comprimentos longos, validação de respostas, cancelamento e isolamento de sessões, exceções de tarefas, identificação por MAC, presença atual, RTT, certificados, limites de coleta, exportações e injeção de HTML.
@@ -92,7 +98,7 @@ O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, 
 
 ## Gerar o executável
 
-A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migração. A [validação 2.0.5](docs/validation-2.0.5.md) registra a base de persistência e contexto de rede.
+A [validação 2.0.8](docs/validation-2.0.8.md) registra taxa, cancelamento e migração. A [validação 2.0.7](docs/validation-2.0.7.md) registra cofre, DPAPI e privacidade. A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migração; a [validação 2.0.5](docs/validation-2.0.5.md), a base de persistência e contexto de rede.
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -e ".[build]"
@@ -100,11 +106,11 @@ A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migra�
 .venv\Scripts\python.exe scripts/package_release.py
 ```
 
-Saída: `dist/portfolio/2.0.6/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
+Saída: `dist/portfolio/2.0.8/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
 
 ```powershell
-dist\portfolio\2.0.6\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
-dist\portfolio\2.0.6\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
+dist\portfolio\2.0.8\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
+dist\portfolio\2.0.8\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
 ```
 
 Para gerar os artefatos públicos da demonstração:

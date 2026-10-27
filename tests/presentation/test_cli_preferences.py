@@ -9,9 +9,15 @@ class CliPreferencesTests(unittest.TestCase):
         with patch("ip_scanner_helper.cli.configure_logging"), \
              patch("ip_scanner_helper.cli.create_scan_service"), \
              patch("ip_scanner_helper.cli.create_desktop_services"), \
+             patch("ip_scanner_helper.cli.create_credential_vault") as vault_factory, \
              patch("ip_scanner_helper.cli.create_preferences_store") as factory, \
              patch("ip_scanner_helper.presentation.qt_app.run", return_value=0) as run:
             self.assertEqual(main(arguments), 0)
+            if "--demo" in arguments or "--self-check" in arguments:
+                vault_factory.assert_not_called()
+                self.assertIsNone(run.call_args.kwargs["credential_vault"])
+            else:
+                self.assertIs(run.call_args.kwargs["credential_vault"], vault_factory.return_value)
             return factory, run
 
     def test_demo_and_self_check_do_not_construct_personal_preferences_store(self):

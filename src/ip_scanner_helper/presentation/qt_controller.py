@@ -20,7 +20,8 @@ from PySide6.QtWidgets import QFileDialog
 
 from ip_scanner_helper.domain.inventory import identity_source, inventory_metrics, matches_device, sorted_devices
 from ip_scanner_helper.application.scan_service import ScanService
-from ip_scanner_helper.application.ports import DesktopServices, PreferencesStore
+from ip_scanner_helper.application.ports import DesktopServices, PreferencesStore, CredentialVault
+from ip_scanner_helper.domain.credentials import CredentialError
 from ip_scanner_helper.domain.preferences import Preferences
 from ip_scanner_helper.domain.network_context import NetworkContext
 from ip_scanner_helper.domain.port_profiles import BUILTIN_PROFILES, PortProfile
@@ -42,13 +43,16 @@ class ScannerController(QObject):
     notice = Signal(str, str)
     settingsChanged = Signal()
     columnsChanged = Signal()
+    credentialsChanged = Signal()
 
     def __init__(self, service: ScanService, desktop: DesktopServices, *, demo=False, auto_discover=True,
-                 preferences: Preferences | None = None, preferences_store: PreferencesStore | None = None, parent=None):
+                 preferences: Preferences | None = None, preferences_store: PreferencesStore | None = None,
+                 credential_vault: CredentialVault | None = None, parent=None):
         super().__init__(parent)
         self.demo = demo
         self._preferences = Preferences() if demo else (preferences or Preferences())
         self._preferences_store = None if demo else preferences_store
+        self._vault = None if demo else credential_vault
         self.window_preferences = lambda: self._preferences.window
         self._interface_hint = (self._preferences.interface_id, self._preferences.interface_name)
         self._inventory_context = None
@@ -84,8 +88,12 @@ class ScannerController(QObject):
             "portsText": "", "viewMode": "inventory",
             "scanMetrics": {},
             "targetTimeout": self._preferences.target_timeout, "workers": self._preferences.workers,
+            "probeRateLimit": self._preferences.probe_rate_limit,
             "mode": self._preferences.mode, "preferencesError": "", "environmentName": "", "networkContext": {},
             "portProfile": self._preferences.port_profile.name, "portCount": len(self._preferences.port_profile.ports),
+            "credentialId": self._preferences.credential_id, "credentials": [], "credentialIds": [""],
+            "credentialLabels": ["Entrada manual"], "credentialIndex": 0, "vaultReady": False,
+            "vaultEnabled": self._vault is not None, "vaultError": "", "vaultStatus": "",
             "limitedCount": 0, "limitedTargetsText": "",
         }
         self.save_timer = QTimer(self)
@@ -97,6 +105,7 @@ class ScannerController(QObject):
         self.timer.setInterval(75)
         self.timer.timeout.connect(self.poll)
         self.timer.start()
+        self.refreshCredentials()
         if demo:
             self.devices = json.loads((RESOURCE_ROOT / "demo_inventory.json").read_text(encoding="utf-8"))
             self._gateway = "192.0.2.1"
@@ -144,6 +153,97 @@ class ScannerController(QObject):
         if not self._data["scanning"]:
             self._data["environmentName"] = value
 
+    @Slot()
+    def refreshCredentials(self):
+        entries = []
+        try:
+            if self._vault is not None:
+                entries = self._vault.list_credentials()
+                self._data.update(vaultReady=True, vaultError="")
+        except CredentialError as exc:
+            self._data.update(vaultReady=False, vaultError=str(exc))
+        except Exception:
+            self._data.update(vaultReady=False, vaultError="O cofre está indisponível. O arquivo foi preservado.")
+        identifiers = ["", *[entry["id"] for entry in entries]]
+        labels = ["Entrada manual", *[entry["name"] + (" · " + entry["environment"] if entry["environment"] else "") for entry in entries]]
+        selected = self._data["credentialId"]
+        if selected not in identifiers:
+            identifiers.append(selected)
+            labels.append("Credencial indisponível · escolha outra")
+        self._data.update(credentials=entries, credentialIds=identifiers, credentialLabels=labels,
+                          credentialIndex=identifiers.index(selected))
+        self.credentialsChanged.emit()
+        self._publish()
+
+    @Slot(str)
+    def selectCredential(self, identifier):
+        entry = next((entry for entry in self._data["credentials"] if entry["id"] == identifier), None)
+        if identifier and entry is None:
+            self.notice.emit("Credencial indisponível", "Atualize o cofre e escolha uma credencial existente.")
+            return
+        self._data["credentialId"] = identifier
+        if entry is not None and entry["environment"]:
+            self._data["environmentName"] = entry["environment"]
+        self._data["credentialIndex"] = self._data["credentialIds"].index(identifier)
+        self._schedule_save()
+        self._publish()
+
+    def _community(self, manual):
+        identifier = self._data["credentialId"]
+        if not identifier:
+            return manual.strip()
+        if self._vault is None:
+            raise CredentialError("A credencial selecionada está indisponível. Escolha uma credencial ou a entrada manual.")
+        try:
+            credential = self._vault.resolve(identifier)
+        except CredentialError:
+            raise
+        except Exception:
+            raise CredentialError("A credencial selecionada está indisponível. Atualize o cofre ou escolha a entrada manual.") from None
+        if credential.environment:
+            selected_environment = self._data["environmentName"].strip()
+            if not selected_environment or NetworkContext.named_environment_id(credential.environment) != NetworkContext.named_environment_id(selected_environment):
+                raise CredentialError("A credencial pertence a outro ambiente. Informe o ambiente correto ou selecione a credencial novamente.")
+        return credential.community
+
+    @Slot(str, str, str, str, result=str)
+    def saveCredential(self, identifier, name, community, environment):
+        if self._vault is None:
+            return ""
+        try:
+            saved = self._vault.save_credential(identifier, name, community, environment)
+        except CredentialError as exc:
+            self._data["vaultError"] = str(exc)
+            self._publish()
+            return ""
+        except Exception:
+            self._data["vaultError"] = "Não foi possível salvar a credencial. O cofre anterior foi preservado."
+            self._publish()
+            return ""
+        self.refreshCredentials()
+        self._data["vaultStatus"] = "Credencial salva no cofre."
+        self._publish()
+        return saved
+
+    @Slot(str, result=bool)
+    def deleteCredential(self, identifier):
+        if self._vault is None:
+            return False
+        try:
+            self._vault.delete_credential(identifier)
+        except CredentialError as exc:
+            self._data["vaultError"] = str(exc)
+            self._publish()
+            return False
+        except Exception:
+            self._data["vaultError"] = "Não foi possível remover a credencial. O cofre anterior foi preservado."
+            self._publish()
+            return False
+        self.refreshCredentials()
+        self._data["vaultStatus"] = "Credencial removida."
+        self._publish()
+        return True
+
     def _schedule_save(self):
         if self._preferences_store is not None and not self._closed:
             self.save_timer.start()
@@ -154,7 +254,8 @@ class ScannerController(QObject):
                        column_widths=tuple(self.table.widths.items()), sort_key=self._sort_key,
                        sort_reverse=self._reverse, last_target=self._data["target"],
                        interface_id=self._interface_hint[0], interface_name=self._interface_hint[1],
-                       mode=self._data["mode"], workers=self._data["workers"], target_timeout=self._data["targetTimeout"])
+                       mode=self._data["mode"], workers=self._data["workers"], target_timeout=self._data["targetTimeout"],
+                       credential_id=self._data["credentialId"])
 
     def save_preferences(self, *, notify=False):
         if self._preferences_store is None:
@@ -188,7 +289,7 @@ class ScannerController(QObject):
     def applyPreferences(self, values):
         try:
             merged = self.preferences_snapshot().to_dict()
-            merged.update({key: values[key] for key in ("mode", "workers", "target_timeout", "port_profile_id", "probe_timeouts") if key in values})
+            merged.update({key: values[key] for key in ("mode", "workers", "target_timeout", "port_profile_id", "probe_timeouts", "probe_rate_limit") if key in values})
             if "custom_port_profiles" in values:
                 profiles = values["custom_port_profiles"]
                 if not isinstance(profiles, list):
@@ -198,8 +299,9 @@ class ScannerController(QObject):
                 if len(profiles) != len(merged["custom_port_profiles"]):
                     raise ValueError("Perfil personalizado inválido.")
             # JavaScript numbers arrive through QVariantMap as doubles.
-            if isinstance(merged["workers"], float) and merged["workers"].is_integer():
-                merged["workers"] = int(merged["workers"])
+            for key in ("workers", "probe_rate_limit"):
+                if isinstance(merged[key], float) and merged[key].is_integer():
+                    merged[key] = int(merged[key])
             preferences = Preferences.from_dict(merged)
         except (ValueError, TypeError) as exc:
             self._data["preferencesError"] = str(exc)
@@ -207,7 +309,8 @@ class ScannerController(QObject):
             return False
         self._preferences = preferences
         self._data.update(mode=preferences.mode, workers=preferences.workers, targetTimeout=preferences.target_timeout,
-                          portProfile=preferences.port_profile.name, portCount=len(preferences.port_profile.ports))
+                          portProfile=preferences.port_profile.name, portCount=len(preferences.port_profile.ports),
+                          probeRateLimit=preferences.probe_rate_limit)
         self.settingsChanged.emit()
         self._publish()
         return self.save_preferences()
@@ -319,11 +422,12 @@ class ScannerController(QObject):
             label = self._data["environmentName"].strip()
             context = NetworkContext.for_scan(self._data["target"], interface, environment_label=label,
                                               environment_confirmed=bool(label))
-            options = ScanOptions(community=community.strip(), workers=workers, mode=self._data.get("mode", "Completo"),
+            options = ScanOptions(community=self._community(community), workers=workers, mode=self._data.get("mode", "Completo"),
                                   timeouts=ScanTimeouts(target_s=target_timeout, **dict(self._preferences.probe_timeouts)),
-                                  network_context=context, port_profile=self._preferences.port_profile)
+                                  network_context=context, port_profile=self._preferences.port_profile,
+                                  probe_rate_limit=self._preferences.probe_rate_limit)
             self._session = self.service.start(targets, options)
-        except (ValueError, RuntimeError) as exc:
+        except (ValueError, RuntimeError, CredentialError) as exc:
             self.notice.emit("Não foi possível iniciar", str(exc))
             return
         self._inventory_context = context.snapshot(self._session, targets)
@@ -362,8 +466,8 @@ class ScannerController(QObject):
             try:
                 result, error = operation(), None
             except Exception as exc:
-                logger.exception("Falha na tarefa %s", key)
-                result, error = None, str(exc)
+                logger.error("Falha na tarefa %s (%s)", key, type(exc).__name__)
+                result, error = None, "A tarefa não pôde ser concluída. Consulte o log."
             self._completions.put((key, token, callback, result, error))
         Thread(target=run, daemon=True, name=f"qt-{key}").start()
 
@@ -526,11 +630,16 @@ class ScannerController(QObject):
     def mapSwitch(self, community):
         if self.demo or not self._selected_ip or self._data["switchBusy"]:
             return
+        try:
+            captured_community = self._community(community) or "public"
+        except CredentialError as exc:
+            self.notice.emit("Credencial indisponível", str(exc))
+            return
         ip = self._selected_ip
         self._data.update(switchBusy=True, switchRows=[], switchIp=ip, switchTitle=self._data["selected"].get("nome", ip), switchStatus="Consultando interfaces e tabelas MAC…")
         records = [dict(d) for d in self.devices]
         self._publish()
-        self._async("switch", lambda: self.desktop.switch_mapper.mapear_switch(ip, community.strip() or "public", records), self._received_switch)
+        self._async("switch", lambda: self.desktop.switch_mapper.mapear_switch(ip, captured_community, records), self._received_switch)
 
     @Slot(str)
     def importMacTable(self, text):

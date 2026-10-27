@@ -13,6 +13,9 @@ htmlcov/
 *.log.*
 *.db
 *.sqlite*
+*.vault
+*.vault.lock
+*.vault.*
 exports/
 .env
 .env.*

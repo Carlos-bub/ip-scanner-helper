@@ -7,7 +7,7 @@ from ip_scanner_helper.domain.preferences import Preferences, WindowPreferences
 class PreferencesTests(unittest.TestCase):
     def test_roundtrip_retains_hidden_widths_and_negative_monitor_position(self):
         prefs = Preferences(window=WindowPreferences(-1440, 20, 1200, 800, True),
-                            column_widths=(("portas", 411.5),), workers=8, target_timeout=4.5)
+                            column_widths=(("portas", 411.5),), workers=8, target_timeout=4.5, probe_rate_limit=25)
         restored = Preferences.from_dict(prefs.to_dict())
         self.assertEqual(restored, prefs)
         self.assertEqual(dict(restored.column_widths)["portas"], 411.5)
@@ -24,7 +24,9 @@ class PreferencesTests(unittest.TestCase):
                       {"target_timeout": float("nan")}, {"target_timeout": 301},
                       {"target_timeout": 0}, {"sort_reverse": "false"}, {"mode": "outro"},
                       {"visible_columns": ["inexistente"]}, {"column_widths": {"ip": 99999}},
-                      {"window": {"width": 12}}, {"last_target": "a\n"}):
+                      {"window": {"width": 12}}, {"last_target": "a\n"}, {"probe_rate_limit": True},
+                      {"probe_rate_limit": -1}, {"probe_rate_limit": 1001}, {"probe_rate_limit": 1.5},
+                      {"probe_rate_limit": "10"}, {"probe_rate_limit": float("nan")}):
             with self.subTest(patch=patch), self.assertRaises(ValueError):
                 Preferences.from_dict(patch)
 

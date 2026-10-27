@@ -46,7 +46,7 @@ ApplicationWindow {
             Rectangle { width: 1; height: 18; color: Theme.border; Layout.leftMargin: 8; Layout.rightMargin: 8 }
             Text { text: root.state.demo ? "Demonstração" : "Inventário IPv4"; font.pixelSize: 12; color: Theme.muted }
             Item { Layout.fillWidth: true }
-            AppButton { objectName: "preferencesButton"; text: "Preferências"; onClicked: preferencesDialog.open() }
+            AppButton { objectName: "preferencesButton"; text: "Preferências"; onClicked: { preferencesDialog.requestedTab = 0; preferencesDialog.open(); } }
             AppButton { text: "Mapa da rede"; enabled: root.state.deviceCount > 0; onClicked: scanner.openMap() }
             AppButton { id: exportButton; text: "Exportar"; enabled: root.state.deviceCount > 0 && !root.state.scanning; onClicked: exportMenu.popup() }
         }
@@ -107,7 +107,7 @@ ApplicationWindow {
                 RowLayout {
                     id: advanced; objectName: "advancedOptions"; visible: false; spacing: 12; Layout.fillWidth: true
                     Text { text: "Comunidade SNMP"; color: Theme.muted; font.pixelSize: 12 }
-                    AppField { id: community; text: "public"; echoMode: TextInput.Password; Layout.preferredWidth: 160; enabled: !root.state.scanning }
+                    AppField { id: community; text: "public"; echoMode: TextInput.Password; Layout.preferredWidth: 160; enabled: !root.state.scanning && root.state.credentialId.length === 0 }
                     Text { text: "Consultas simultâneas"; color: Theme.muted; font.pixelSize: 12 }
                     AppField { id: workers; objectName: "workersField"; text: "32"; Layout.preferredWidth: 64; validator: IntValidator { bottom: 1; top: 128 } enabled: !root.state.scanning; onEditingFinished: root.rememberScanDefaults() }
                     AppButton { text: "Atualizar interfaces"; variant: "quiet"; enabled: !root.state.demo && !root.state.scanning && !root.state.interfacesBusy; onClicked: scanner.refreshInterfaces() }
@@ -115,15 +115,21 @@ ApplicationWindow {
                 }
                 RowLayout {
                     visible: advanced.visible; Layout.fillWidth: true; spacing: 12
+                    Text { text: "Credencial SNMP"; color: Theme.muted; font.pixelSize: 12 }
+                    AppCombo { objectName: "credentialCombo"; Layout.fillWidth: true; model: root.state.credentialLabels; currentIndex: root.state.credentialIndex; enabled: !root.state.scanning && !root.state.demo; onActivated: scanner.selectCredential(root.state.credentialIds[currentIndex]) }
+                    AppButton { text: "Gerenciar cofre"; onClicked: { preferencesDialog.requestedTab = 3; preferencesDialog.open(); } }
+                }
+                RowLayout {
+                    visible: advanced.visible; Layout.fillWidth: true; spacing: 12
                     Text { text: "Limite por IP (s)"; color: Theme.muted; font.pixelSize: 12 }
                     AppField { id: targetTimeout; objectName: "targetTimeoutField"; text: "20"; Layout.preferredWidth: 64; validator: DoubleValidator { bottom: 0.01; top: 300; decimals: 2; locale: "C" } enabled: !root.state.scanning; onEditingFinished: root.rememberScanDefaults() }
                     Text { text: "Ao atingir o limite, os dados encontrados são preservados."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap }
                 }
-                Text { visible: advanced.visible; text: "Perfil TCP: " + root.state.portProfile + " · " + root.state.portCount + " portas. Ajuste em Preferências."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap; textFormat: Text.PlainText }
+                Text { visible: advanced.visible; text: "Próxima coleta · " + root.state.portProfile + " · " + root.state.portCount + " portas TCP · " + (root.state.probeRateLimit > 0 ? root.state.probeRateLimit + " sondas/s" : "Sem limite de sondas/s") + ". Ajuste em Preferências."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap; textFormat: Text.PlainText }
                 RowLayout {
                     visible: advanced.visible; Layout.fillWidth: true; spacing: 12
                     Text { text: "Ambiente (opcional)"; color: Theme.muted; font.pixelSize: 12 }
-                    AppField { objectName: "environmentField"; Layout.preferredWidth: 220; maximumLength: 120; placeholderText: "Ex.: Escritório · matriz"; enabled: !root.state.scanning; onTextEdited: scanner.setEnvironmentName(text) }
+                    AppField { objectName: "environmentField"; text: root.state.environmentName; Layout.preferredWidth: 220; maximumLength: 120; placeholderText: "Ex.: Escritório · matriz"; enabled: !root.state.scanning; onTextEdited: scanner.setEnvironmentName(text) }
                     Text { text: "Use um nome exclusivo para cada rede. Sem nome, a coleta fica isolada."; color: Theme.muted; font.pixelSize: 12; Layout.fillWidth: true; wrapMode: Text.Wrap }
                 }
                 Text {

@@ -8,6 +8,7 @@ from typing import Protocol
 
 from ip_scanner_helper.domain.interfaces import LocalInterface
 from ip_scanner_helper.domain.preferences import Preferences
+from ip_scanner_helper.domain.credentials import SnmpCredential
 from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ProbeContext
 
 
@@ -42,6 +43,18 @@ class PreferencesStore(Protocol):
 
     def load(self) -> Preferences: ...
     def save(self, preferences: Preferences) -> None: ...
+
+
+class CredentialVault(Protocol):
+    def list_credentials(self) -> list[dict]: ...
+    def resolve(self, identifier: str) -> SnmpCredential: ...
+    def save_credential(self, identifier: str, name: str, community: str, environment: str = "") -> str: ...
+    def delete_credential(self, identifier: str) -> None: ...
+
+
+class SecretProtector(Protocol):
+    def protect(self, plaintext: bytes) -> bytes: ...
+    def unprotect(self, ciphertext: bytes) -> bytes: ...
 
 
 @dataclass(frozen=True)

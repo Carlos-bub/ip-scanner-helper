@@ -25,7 +25,7 @@ def main(capture=False):
     app = QApplication.instance() or QApplication([])
     with tempfile.TemporaryDirectory() as directory:
         store = JsonPreferencesStore(Path(directory) / "settings.json")
-        initial = replace(Preferences(), workers=5, mode="Rápido", target_timeout=8.5,
+        initial = replace(Preferences(), workers=5, mode="Rápido", target_timeout=8.5, probe_rate_limit=50,
                           last_target="192.0.2.1", column_widths=(("ip", 205),),
                           window=WindowPreferences(width=1180, height=780))
         store.save(initial)
@@ -92,12 +92,15 @@ def main(capture=False):
             assert controller.columnWidth(0) == resized
             click("preferencesButton")
             assert item("preferencesDialog").property("visible")
+            assert item("preferenceProbeRate").property("text") == "50"
             if capture:
                 target = Path(__file__).resolve().parents[1] / "docs" / "desktop-preferences.png"
                 assert window.grabWindow().save(str(target))
             item("preferenceWorkers").setProperty("text", "9")
+            item("preferenceProbeRate").setProperty("text", "20")
             click("preferencesCancel")
             assert controller.state["workers"] == 5, "Cancelar aplicou o rascunho"
+            assert controller.state["probeRateLimit"] == 50
             click("preferencesButton")
             item("preferenceWorkers").setProperty("text", "0")
             click("preferencesSave")
@@ -105,14 +108,22 @@ def main(capture=False):
             assert controller.state["workers"] == 5
             item("preferenceWorkers").setProperty("text", "12")
             item("preferenceTimeout").setProperty("text", "7.5")
+            item("preferenceProbeRate").setProperty("text", "")
+            click("preferencesSave")
+            assert item("preferencesDialog").property("visible"), "Taxa vazia foi aceita"
+            assert controller.state["workers"] == 5, "Taxa inválida aplicou o rascunho"
+            edit("preferenceProbeRate", "25")
             click("preferencesSave")
             assert not item("preferencesDialog").property("visible"), controller.state["preferencesError"]
             assert item("workersField").property("text") == "12"
             assert item("targetTimeoutField").property("text") == "7.5"
             controller.startScan("fixture-secret", 12, 7.5)
             captured = service.start.call_args.args[1]
+            assert captured.probe_rate_limit == 25
             click("preferencesButton")
             item("preferenceWorkers").setProperty("text", "16")
+            edit("preferenceProbeRate", "10")
+            screenshot("desktop-probe-rate.png")
             click("preferencesTab1")
             click("profileNew")
             item("profileName").setProperty("text", "Aplicações")
@@ -133,8 +144,10 @@ def main(capture=False):
             assert captured.workers == 12, "Preferência alterou a sessão ativa"
             assert captured.port_profile.id == "standard"
             assert captured.timeouts.tcp == .2
+            assert captured.probe_rate_limit == 25, "Taxa alterou a sessão ativa"
             assert controller.state["workers"] == 16
             prefs = controller.preferences_snapshot()
+            assert prefs.probe_rate_limit == 10
             assert prefs.port_profile.tcp_mapping() == {8088: "Minha aplicação", 9000: "Serviço interno"}
             assert dict(prefs.probe_timeouts)["tcp"] == .75
             assert dict(prefs.probe_timeouts)["snmp"] == 1.25
@@ -178,6 +191,7 @@ def main(capture=False):
             controller.close()
             restored = JsonPreferencesStore(store.path).load()
             assert restored.workers == 16
+            assert restored.probe_rate_limit == 10
             assert restored.port_profile_id == prefs.port_profile_id
             assert dict(restored.probe_timeouts)["tcp"] == .75
             assert restored.window.maximized
@@ -188,7 +202,7 @@ def main(capture=False):
             controller.close()
             window.close()
             shiboken6.delete(engine)
-    print("Preferências OK: perfis TCP, duplicar/remover/cancelar, tempos por sonda, validação atômica, sessão ativa, janela compacta e maximizada; sem sondas de rede.")
+    print("Preferências OK: taxa de sondas, perfis TCP, duplicar/remover/cancelar, tempos por sonda, validação atômica, sessão ativa, janela compacta e maximizada; sem sondas de rede.")
 
 
 if __name__ == "__main__":

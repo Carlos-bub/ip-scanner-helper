@@ -26,3 +26,5 @@ jobs:
         run: python scripts/smoke_ui.py
       - name: Preferences smoke test (temporary settings)
         run: python scripts/smoke_preferences.py
+      - name: Credential vault smoke test (synthetic DPAPI data)
+        run: python scripts/smoke_vault.py

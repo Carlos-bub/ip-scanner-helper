@@ -4,7 +4,8 @@ from dataclasses import dataclass, field
 import math
 from typing import Mapping
 from ip_scanner_helper.domain.port_profiles import BUILTIN_PROFILES, MAX_CUSTOM_PROFILES, PortProfile
-from ip_scanner_helper.domain.scan_policy import PROBE_TIMEOUT_DEFAULTS, ScanTimeouts
+from ip_scanner_helper.domain.scan_policy import PROBE_TIMEOUT_DEFAULTS, ScanTimeouts, validate_probe_rate
+from ip_scanner_helper.domain.credentials import valid_credential_id
 
 COLUMN_KEYS = ("ip", "nome", "fabricante", "tipo", "latencia", "mac", "origem", "portas", "confianca")
 DEFAULT_VISIBLE_COLUMNS = COLUMN_KEYS[:7]
@@ -73,8 +74,13 @@ class Preferences:
     port_profile_id: str = "standard"
     custom_port_profiles: tuple[PortProfile, ...] = ()
     probe_timeouts: tuple[tuple[str, float], ...] = PROBE_TIMEOUT_DEFAULTS
+    credential_id: str = ""
+    probe_rate_limit: int = 0
 
     def __post_init__(self):
+        validate_probe_rate(self.probe_rate_limit)
+        if not valid_credential_id(self.credential_id, allow_empty=True):
+            raise ValueError("Referência de credencial inválida.")
         if (not isinstance(self.custom_port_profiles, (tuple, list)) or len(self.custom_port_profiles) > MAX_CUSTOM_PROFILES
                 or any(not isinstance(profile, PortProfile) for profile in self.custom_port_profiles)):
             raise ValueError(f"Use até {MAX_CUSTOM_PROFILES} perfis personalizados.")
@@ -142,6 +148,8 @@ class Preferences:
             "port_profile_id": self.port_profile_id,
             "custom_port_profiles": [profile.to_dict() for profile in self.custom_port_profiles],
             "probe_timeouts": dict(self.probe_timeouts),
+            "credential_id": self.credential_id,
+            "probe_rate_limit": self.probe_rate_limit,
         }
 
     @classmethod
@@ -168,7 +176,7 @@ class Preferences:
                 raise ValueError("Larguras de colunas inválidas.")
             values["column_widths"] = tuple(payload["column_widths"].items())
         for key in ("sort_key", "sort_reverse", "last_target", "interface_id", "interface_name",
-                    "mode", "workers", "target_timeout"):
+                    "mode", "workers", "target_timeout", "credential_id", "probe_rate_limit"):
             if key in payload:
                 values[key] = payload[key]
         return cls(**values)

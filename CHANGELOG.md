@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.0.8 — 2026-10-27
+
+- Controle do início de coletores por segundo em Preferências → Coleta, compartilhado entre os IPs da sessão; padrão desativado e valores de 1 a 1.000 quando habilitado.
+- Admissões espaçadas, sem créditos acumulados; espera cancelável dentro do prazo por IP, preservando evidências e indicadores de coleta incompleta.
+- Alcance explícito na interface e documentação: coletores, sem limite individual de pacotes, portas de um lote TCP ou tentativas internas. Mapeamento de switches permanece separado.
+- Configuração imutável por sessão e resumo de admissões; schema 4 com backup exato antes da migração de schemas 1/2/3, mantendo perfis, tempos e referência do cofre.
+- 209 testes aprovados e três scripts gráficos validados com dados temporários e rede simulada.
+
+## 2.0.7 — 2026-10-27
+
+- Cofre de até 32 comunidades SNMP v1/v2c, com nome, ambiente opcional e identificador estável; edição sem revelar o segredo e exclusão com confirmação.
+- Proteção DPAPI por usuário do Windows em arquivo separado, gravação atômica e bloqueio entre instâncias; cofre inválido/inacessível preservado.
+- Seleção explícita para varredura e mapeamento de switches, com validação do ambiente e bloqueio quando a referência estiver indisponível; sem cascata ou fallback automático.
+- Comunidade capturada no início da operação; edição/exclusão não altera a sessão ativa. Entrada manual permanece disponível por escolha explícita.
+- Schema 3 guarda somente a referência; migração de schemas 1/2 com backup. Demonstração/autoverificação isoladas do cofre pessoal.
+- Representações e mensagens de erro sem segredo; arquivos de cofre excluídos do Git/ZIPs públicos. Sem alteração da proteção de transporte do SNMP.
+- 195 testes e três scripts gráficos aprovados, incluindo DPAPI real com credenciais sintéticas, adulteração, concorrência e falhas de gravação.
+
 ## 2.0.6 — 2026-10-27
 
 - Preferências divididas em Coleta, Perfis TCP e Tempos, mantendo a tabela como tela principal.

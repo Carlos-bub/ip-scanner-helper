@@ -47,4 +47,4 @@ O arquivo de preferências usa schema 2 e limite de 512 KiB. Ao carregar um arqu
 
 Ao voltar à versão 2.0.5, seu leitor preserva o schema 2 e usa valores padrão. Para recuperar a configuração anterior, feche o aplicativo, guarde o `settings.json` atual e restaure o backup schema 1 como `settings.json`. Os perfis e tempos novos não existem no schema antigo. Credenciais continuam fora de ambos os arquivos.
 
-Veja as capturas de [perfis](desktop-port-profiles.png) e [tempos](desktop-probe-timeouts.png) e o [registro de validação](validation-2.0.6.md). Cofre protegido, tema escuro, controle de taxa e histórico permanecem incrementos separados.
+Veja as capturas de [perfis](desktop-port-profiles.png) e [tempos](desktop-probe-timeouts.png) e o [registro de validação](validation-2.0.6.md). Desde a 2.0.7, o [cofre SNMP](credential-vault.md) usa schema 3 nas preferências e preserva o schema 2 em backup antes da gravação. A 2.0.8 acrescenta [controle de taxa de coletores](probe-rate-limit.md) e migração ao schema 4. Tema escuro e histórico permanecem incrementos separados.

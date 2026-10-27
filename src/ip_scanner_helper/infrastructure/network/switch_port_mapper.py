@@ -33,7 +33,7 @@ def parse_snmp_response(data):
         response = parse_response(data)
         return response.values[0] if response.values else (None, None, None)
     except SnmpError:
-        logger.debug("Pacote SNMP inválido", exc_info=True)
+        logger.debug("Pacote SNMP inválido")
         return None, None, None
 
 
@@ -67,8 +67,8 @@ def snmp_walk_tree(ip, community, root_oid, timeout=0.8, max_reps=10000, budget=
             results[next_oid] = value
             current = next_oid
         except (OSError, SnmpError) as exc:
-            results.partial, results.reason = True, str(exc)
-            logger.debug("Coleta SNMP parcial: %s / %s", ip, root_oid, exc_info=True)
+            results.partial, results.reason = True, "Falha de comunicação ou resposta SNMP inválida"
+            logger.debug("Coleta SNMP parcial: %s / %s (%s)", ip, root_oid, type(exc).__name__)
             break
     else:
         results.partial, results.reason = True, "limite de entradas"

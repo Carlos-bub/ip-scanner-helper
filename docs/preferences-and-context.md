@@ -4,7 +4,7 @@ As preferências ficam em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Desde 
 
 ## Persistência
 
-O arquivo possui `schema_version: 2` e um objeto `preferences` com campos permitidos explicitamente. O schema 1 é carregado com os novos campos nos valores padrão e recebe backup exato antes da migração na gravação. Veja [perfis, tempos e retorno de versão](port-profiles.md). Credenciais SNMP/Telnet, resultados, nomes de dispositivos e ambiente não são persistidos nesse arquivo. O caminho é resolvido na composição; o armazenamento recebe um caminho explícito e não faz I/O no construtor. `--demo` e `--self-check` não carregam nem gravam preferências pessoais.
+O arquivo possui `schema_version: 4` e um objeto `preferences` com campos permitidos explicitamente. Schemas 1/2/3 são carregados com os novos campos nos valores padrão e recebem backup exato antes da migração na gravação. O campo `credential_id` referencia uma comunidade no [cofre protegido](credential-vault.md); o segredo permanece separado. Credenciais SNMP/Telnet, resultados, nomes de dispositivos e ambiente não são persistidos no JSON de preferências. O caminho é resolvido na composição; o armazenamento recebe um caminho explícito e não faz I/O no construtor. `--demo` e `--self-check` não carregam nem gravam preferências/cofre pessoais.
 
 As escritas usam arquivo temporário no mesmo diretório, `flush`, `fsync` e substituição atômica. A leitura tem limite de 512 KiB e valida tipos, limites, valores finitos e colunas conhecidas. Campos desconhecidos da versão atual são ignorados; campos reconhecidos ausentes usam padrões. Um arquivo inválido é preservado como `settings.invalid-<data>-<identificador>.json` antes de retornar aos padrões. Se não for possível preservá-lo, o aplicativo não o sobrescreve.
 
@@ -28,4 +28,4 @@ Quando o ambiente foi informado, o escopo combina seu identificador com o hash d
 
 ## Próximos incrementos
 
-Perfis TCP e tempos por sonda estão entregues na 2.0.6. As próximas partes são credenciais em armazenamento protegido separado e controle de sondas iniciadas por segundo. Depois, preferências de agrupamento do mapa e histórico. Esta entrega não inclui cofre, tema escuro, agendamento ou vinculação automática de ambientes.
+Perfis TCP e tempos por sonda estão entregues na 2.0.6, e o cofre SNMP protegido, na 2.0.7. A 2.0.8 entrega o [controle de sondas iniciadas por segundo](probe-rate-limit.md), com taxa padrão desativada e captura por sessão. Depois, seguem agrupamento lógico do mapa e histórico. Tema escuro, agendamento e vinculação automática de ambientes continuam pendentes.

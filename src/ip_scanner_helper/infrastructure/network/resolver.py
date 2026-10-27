@@ -97,7 +97,7 @@ class NetworkResolver:
     def query_snmp(cls, ip, custom_community="public", timeout=DEFAULT_TIMEOUTS.snmp, *, context=None):
         """Read the configured community; a missing field does not discard the other."""
         context = operation_context(timeout, context, factor=4)
-        community = custom_community.strip() or "public"
+        community = custom_community or "public"
         fields, version = [], 1
         try:
             for version in (1, 0):
@@ -111,7 +111,7 @@ class NetworkResolver:
                                 value = raw.decode("utf-8", errors="replace").strip() or None
                     except (OSError, SnmpError):
                         context.check()
-                        logger.debug("SNMP sem resposta válida: %s / %s", ip, oid, exc_info=True)
+                        logger.debug("SNMP sem resposta válida: %s / %s", ip, oid)
                     fields.append(value)
                 if any(fields):
                     return fields[0], fields[1], "SNMP v2c" if version == 1 else "SNMP v1"

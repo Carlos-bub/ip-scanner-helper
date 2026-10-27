@@ -30,7 +30,7 @@ class PreferencesStoreTests(unittest.TestCase):
         self.store.save(expected)
         self.assertEqual(JsonPreferencesStore(self.path).load(), expected)
         payload = json.loads(self.path.read_text(encoding="utf-8"))
-        self.assertEqual(payload["schema_version"], 2)
+        self.assertEqual(payload["schema_version"], 4)
         self.assertEqual(set(payload["preferences"]), set(expected.to_dict()))
         self.assertFalse(list(self.path.parent.glob("*.tmp")))
 
@@ -83,7 +83,7 @@ class PreferencesStoreTests(unittest.TestCase):
         self.store.save(preferences)
         backup = self.store.migration_backup
         self.assertEqual(backup.read_text(encoding="utf-8"), original)
-        self.assertEqual(json.loads(self.path.read_text(encoding="utf-8"))["schema_version"], 2)
+        self.assertEqual(json.loads(self.path.read_text(encoding="utf-8"))["schema_version"], 4)
         self.assertEqual(JsonPreferencesStore(self.path).load(), preferences)
         self.store.save(preferences)
         self.assertEqual(len(list(self.path.parent.glob("settings.v1-backup-*.json"))), 1)
@@ -100,4 +100,48 @@ class PreferencesStoreTests(unittest.TestCase):
         with patch.object(Path, "open", fail_backup):
             with self.assertRaises(OSError):
                 self.store.save(preferences)
+        self.assertEqual(self.path.read_text(encoding="utf-8"), original)
+
+    def test_schema_two_migration_keeps_profiles_and_only_persists_credential_reference(self):
+        original = '{"schema_version":2,"preferences":{"workers":8,"port_profile_id":"cctv","probe_timeouts":{"snmp":1.2}}}'
+        self.write(original)
+        preferences = self.store.load()
+        self.assertEqual(preferences.port_profile_id, "cctv")
+        self.assertEqual(dict(preferences.probe_timeouts)["snmp"], 1.2)
+        self.store.save(replace(preferences, credential_id="a" * 32))
+        self.assertEqual(self.store.migration_backup.read_text(encoding="utf-8"), original)
+        self.assertIn(".v2-backup-", self.store.migration_backup.name)
+        self.assertEqual(self.store.load().credential_id, "a" * 32)
+
+    def test_schema_three_migration_preserves_vault_reference_and_defaults_to_unlimited(self):
+        original = json.dumps({"schema_version": 3, "preferences": {
+            "credential_id": "b" * 32, "port_profile_id": "cctv", "probe_timeouts": {"snmp": 1.5}, "workers": 8}})
+        self.write(original)
+        preferences = self.store.load()
+        self.assertEqual(preferences.probe_rate_limit, 0)
+        self.store.save(replace(preferences, probe_rate_limit=40))
+        self.assertEqual(self.store.migration_backup.read_text(encoding="utf-8"), original)
+        self.assertIn(".v3-backup-", self.store.migration_backup.name)
+        restored = JsonPreferencesStore(self.path).load()
+        self.assertEqual(restored.probe_rate_limit, 40)
+        self.assertEqual(restored.credential_id, "b" * 32)
+        self.assertEqual(restored.port_profile_id, "cctv")
+        self.assertEqual(dict(restored.probe_timeouts)["snmp"], 1.5)
+        self.store.save(restored)
+        self.assertEqual(len(list(self.path.parent.glob("settings.v3-backup-*.json"))), 1)
+
+    def test_schema_three_backup_failure_preserves_original_and_no_new_file(self):
+        original = '{"schema_version":3,"preferences":{"workers":8}}'
+        self.write(original)
+        preferences = self.store.load()
+        real_open = Path.open
+
+        def fail_backup(path, *args, **kwargs):
+            if ".v3-backup-" in path.name:
+                raise PermissionError("simulado")
+            return real_open(path, *args, **kwargs)
+
+        with patch.object(Path, "open", fail_backup):
+            with self.assertRaises(OSError):
+                self.store.save(replace(preferences, probe_rate_limit=40))
         self.assertEqual(self.path.read_text(encoding="utf-8"), original)

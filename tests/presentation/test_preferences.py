@@ -13,6 +13,23 @@ from ip_scanner_helper.presentation.qt_controller import ScannerController
 
 
 class DesktopPreferencesTests(unittest.TestCase):
+    def test_rate_restores_and_changes_only_the_next_scan(self):
+        c, service, store = self.controller(replace(Preferences(), probe_rate_limit=30))
+        self.assertEqual(c.state["probeRateLimit"], 30)
+        self.assertEqual(c.preferencesDraft()["probe_rate_limit"], 30)
+        c.setTarget("192.0.2.1")
+        c.startScan("synthetic", 2, 10)
+        active = service.start.call_args.args[1]
+        self.assertTrue(c.applyPreferences({"probe_rate_limit": 15.0}))
+        self.assertEqual(active.probe_rate_limit, 30)
+        self.assertEqual(store.save.call_args.args[0].probe_rate_limit, 15)
+        self.assertFalse(c.applyPreferences({"probe_rate_limit": 15.5, "workers": 9}))
+        self.assertEqual(c.state["workers"], 2)
+        self.assertEqual(c.state["probeRateLimit"], 15)
+        c._data["scanning"] = False
+        c.startScan("synthetic", 2, 10)
+        self.assertEqual(service.start.call_args.args[1].probe_rate_limit, 15)
+
     def test_profile_and_probe_changes_only_affect_the_next_session(self):
         c, service, store = self.controller()
         c.setTarget("192.0.2.1")

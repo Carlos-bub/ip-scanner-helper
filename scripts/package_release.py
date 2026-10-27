@@ -8,6 +8,9 @@ from release_support import (ROOT, VERSION, BINARY, EXECUTABLE, DESTINATION, VAL
 
 
 def public_source_file(path):
+    private_name = path.name.lower()
+    if private_name.endswith(".vault") or ".vault." in private_name:
+        return False
     relative = path.relative_to(ROOT)
     if any(part.endswith((".egg-info", ".dist-info")) for part in relative.parts):
         return False
@@ -55,7 +58,8 @@ def main():
             archive.write(path, Path("IP_Scanner_Helper-source") / path.relative_to(ROOT))
     with ZipFile(binary_zip, "w", ZIP_DEFLATED) as archive:
         for path in sorted(binary.rglob("*")):
-            if path.is_file():
+            private_name = path.name.lower()
+            if path.is_file() and not (private_name.endswith(".vault") or ".vault." in private_name):
                 archive.write(path, path.relative_to(binary.parent))
     checksums = []
     for path in (source_zip, binary_zip):

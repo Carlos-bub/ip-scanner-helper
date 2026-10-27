@@ -3,6 +3,16 @@
 from dataclasses import dataclass, fields
 import math
 
+MAX_PROBE_STARTS_PER_SECOND = 1000
+
+
+def validate_probe_rate(value):
+    """Zero keeps admission unrestricted; positive rates count collectors."""
+    if (isinstance(value, bool) or not isinstance(value, int)
+            or not 0 <= value <= MAX_PROBE_STARTS_PER_SECOND):
+        raise ValueError(f"Use de 0 a {MAX_PROBE_STARTS_PER_SECOND} sondas por segundo; 0 desativa o limite.")
+    return value
+
 
 @dataclass(frozen=True)
 class ScanTimeouts:

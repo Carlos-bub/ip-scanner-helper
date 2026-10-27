@@ -13,6 +13,7 @@ from ip_scanner_helper.application.ports import NetworkProbe
 from ip_scanner_helper.application.scanner import ScanCancelled, ScanOptions, scan_device
 from ip_scanner_helper.application.observations import ScanMetrics
 from ip_scanner_helper.application.errors import ScanIncomplete
+from ip_scanner_helper.application.rate_limit import ProbeRateLimiter
 from ip_scanner_helper.domain.network_context import NetworkContext
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,7 @@ class ScanService:
         completed = errors = limited = 0
         pending = {}
         metrics = ScanMetrics()
+        limiter = ProbeRateLimiter(options.probe_rate_limit)
 
         def emit(kind, **payload):
             self.events.put(ScanEvent(session, kind, payload))
@@ -89,7 +91,7 @@ class ScanService:
                 return self.worker(ip, options, cancelled, arp,
                                    resolver=self.resolver,
                                    observer=metrics.observe if options.probe_metrics else None,
-                                   on_discovery=discovery)
+                                   on_discovery=discovery, rate_limiter=limiter)
             return self.worker(ip, options, cancelled, arp)
 
         try:
@@ -132,19 +134,20 @@ class ScanService:
                                 continue
                             completed += 1
                             incomplete(ip, exc.reason, exc.probes)
-                        except Exception:
+                        except Exception as exc:
                             completed += 1
                             errors += 1
-                            logger.exception("Falha ao analisar o endereço %s", ip)
+                            logger.error("Falha ao analisar o endereço %s (%s)", ip, type(exc).__name__)
                             emit("error", ip=ip, message="Falha ao analisar endereço; consulte o log.")
                         progress_changed = True
                     if progress_changed:
                         emit("progress", completed=completed, total=len(targets), errors=errors, limited_targets=limited)
-        except Exception:
+        except Exception as exc:
             errors += 1
-            logger.exception("Falha no coordenador de varredura")
+            logger.error("Falha no coordenador de varredura (%s)", type(exc).__name__)
             emit("error", message="Falha na varredura; consulte o log.")
         finally:
             emit("finished", completed=completed, total=len(targets), errors=errors,
                  cancelled=cancelled.is_set(), limited_targets=limited, network_context=deepcopy(context), metrics={**metrics.snapshot(self.cancel_requested_at),
-                                                       "probe_metrics_enabled": options.probe_metrics})
+                                                       "probe_metrics_enabled": options.probe_metrics,
+                                                       "probe_rate": limiter.snapshot()})
