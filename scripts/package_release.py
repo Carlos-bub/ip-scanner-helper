@@ -1,6 +1,7 @@
 """Package an explicit source allowlist and the already validated Windows build."""
 
 import json
+import re
 from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile
 from release_support import (ROOT, VERSION, BINARY, EXECUTABLE, DESTINATION, VALIDATION,
@@ -9,6 +10,8 @@ from release_support import (ROOT, VERSION, BINARY, EXECUTABLE, DESTINATION, VAL
 
 def public_source_file(path):
     private_name = path.name.lower()
+    if re.search(r"\.(?:db|sqlite\d*)(?:-(?:wal|shm|journal)|\.lock)?$", private_name):
+        return False
     if private_name.endswith(".vault") or ".vault." in private_name:
         return False
     relative = path.relative_to(ROOT)
@@ -59,7 +62,8 @@ def main():
     with ZipFile(binary_zip, "w", ZIP_DEFLATED) as archive:
         for path in sorted(binary.rglob("*")):
             private_name = path.name.lower()
-            if path.is_file() and not (private_name.endswith(".vault") or ".vault." in private_name):
+            if path.is_file() and not (private_name.endswith(".vault") or ".vault." in private_name
+                    or re.search(r"\.(?:db|sqlite\d*)(?:-(?:wal|shm|journal)|\.lock)?$", private_name)):
                 archive.write(path, path.relative_to(binary.parent))
     checksums = []
     for path in (source_zip, binary_zip):

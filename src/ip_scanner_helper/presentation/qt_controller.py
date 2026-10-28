@@ -10,7 +10,7 @@ from pathlib import Path
 from queue import Empty, Queue
 import subprocess
 import tempfile
-from threading import Thread
+from threading import Thread, Event
 import time
 from uuid import uuid4
 
@@ -19,22 +19,25 @@ from PySide6.QtGui import QGuiApplication, QDesktopServices
 from PySide6.QtWidgets import QFileDialog
 
 from ip_scanner_helper.domain.inventory import identity_source, inventory_metrics, matches_device, sorted_devices
+from ip_scanner_helper.domain.topology import build_topology_graph
 from ip_scanner_helper.application.scan_service import ScanService
 from ip_scanner_helper.application.ports import DesktopServices, PreferencesStore, CredentialVault
 from ip_scanner_helper.domain.credentials import CredentialError
+from ip_scanner_helper.domain.l2 import correlate_neighbors, neighbor_summary, STATUS_LABELS
 from ip_scanner_helper.domain.preferences import Preferences
 from ip_scanner_helper.domain.network_context import NetworkContext
 from ip_scanner_helper.domain.port_profiles import BUILTIN_PROFILES, PortProfile
 from ip_scanner_helper.domain.scan_policy import PROBE_TIMEOUT_DEFAULTS
 from ip_scanner_helper.resources import RESOURCE_ROOT
 from ip_scanner_helper.application.scanner import ScanOptions
-from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ScanTimeouts
+from ip_scanner_helper.application.timing import DEFAULT_TIMEOUTS, ScanTimeouts, ProbeContext
 from ip_scanner_helper.domain.targets import parse_targets
 from ip_scanner_helper.presentation.qt_model import COLUMNS, InventoryModel
+from ip_scanner_helper.presentation.history_controller import HistoryController, session_status
 
 logger = logging.getLogger(__name__)
 CATEGORIES = {"Todas as categorias": "TODOS", "Infraestrutura": "SWITCH", "Estações": "ESTACAO",
-              "Estações / servidores": "AD", "Impressoras": "PRINTER", "Telefonia IP": "VOIP",
+              "Servidores": "SERVIDOR", "Impressoras": "PRINTER", "Telefonia IP": "VOIP",
               "CFTV": "CFTV", "Não identificados": "UNKNOWN"}
 
 
@@ -47,7 +50,7 @@ class ScannerController(QObject):
 
     def __init__(self, service: ScanService, desktop: DesktopServices, *, demo=False, auto_discover=True,
                  preferences: Preferences | None = None, preferences_store: PreferencesStore | None = None,
-                 credential_vault: CredentialVault | None = None, parent=None):
+                 credential_vault: CredentialVault | None = None, history_service=None, parent=None):
         super().__init__(parent)
         self.demo = demo
         self._preferences = Preferences() if demo else (preferences or Preferences())
@@ -67,6 +70,8 @@ class ScannerController(QObject):
         self.errors = []
         self._limited = []
         self._jobs = {}
+        self._l2_cancel = Event()
+        self._switch_cancel = Event()
         self._completions = Queue()
         self._interfaces = []
         self._gateway = None
@@ -85,17 +90,23 @@ class ScannerController(QObject):
             "visibleCount": 0, "deviceCount": 0, "metrics": inventory_metrics([]), "updatedAt": "",
             "columnOptions": [], "sortKey": self._sort_key, "sortReverse": self._reverse,
             "switchBusy": False, "switchRows": [], "switchStatus": "", "switchTitle": "", "switchIp": "",
+            "switchCancellable": False,
+            "l2Busy": False, "l2Status": "", "l2Neighbors": [], "l2Vlans": [], "l2Coverage": [],
             "portsText": "", "viewMode": "inventory",
             "scanMetrics": {},
             "targetTimeout": self._preferences.target_timeout, "workers": self._preferences.workers,
             "probeRateLimit": self._preferences.probe_rate_limit,
             "mode": self._preferences.mode, "preferencesError": "", "environmentName": "", "networkContext": {},
+            "theme": self._preferences.theme, "inventoryRevision": 0,
             "portProfile": self._preferences.port_profile.name, "portCount": len(self._preferences.port_profile.ports),
             "credentialId": self._preferences.credential_id, "credentials": [], "credentialIds": [""],
             "credentialLabels": ["Entrada manual"], "credentialIndex": 0, "vaultReady": False,
             "vaultEnabled": self._vault is not None, "vaultError": "", "vaultStatus": "",
             "limitedCount": 0, "limitedTargetsText": "",
         }
+        self._history = HistoryController(None if demo else history_service, load_inventory=self._load_history,
+                                          can_modify=lambda: not self._data["scanning"] and not self._data["switchBusy"] and not self._data["l2Busy"], parent=self)
+        self._history.notice.connect(self.notice.emit)
         self.save_timer = QTimer(self)
         self.save_timer.setSingleShot(True)
         self.save_timer.setInterval(600)
@@ -119,11 +130,51 @@ class ScannerController(QObject):
     def state(self):
         return dict(self._data)
 
+    @Property(QObject, constant=True)
+    def history(self):
+        return self._history
+
+    def _load_history(self, snapshot):
+        if self._data["scanning"] or self._data["switchBusy"] or self._data["l2Busy"]:
+            return
+        self._session = None
+        self._started = None
+        self._jobs.pop("switch", None)
+        self._jobs.pop("l2", None)
+        self._selected_ip = ""
+        self.devices = deepcopy(snapshot["devices"])
+        self._inventory_context = deepcopy(snapshot["network_context"])
+        self._inventory_gateway = self._inventory_context.get("interface", {}).get("gateway")
+        self.errors.clear()
+        self._limited = [deepcopy(item) for item in snapshot["incomplete_targets"] if item.get("outcome") != "error"]
+        self.errors = [deepcopy(item) for item in snapshot["incomplete_targets"] if item.get("outcome") == "error"]
+        coverage = snapshot["coverage"]
+        self._data.update(viewMode="history", detailsOpen=False, selectedIp="", selected={},
+                          status="Histórico · " + datetime.fromisoformat(snapshot["started_at"]).astimezone().strftime("%d/%m/%Y %H:%M") + " · " + session_status(snapshot["status"]),
+                          networkContext=deepcopy(self._inventory_context), scanMetrics={},
+                          completed=coverage["completed"], total=coverage["total"], errorCount=coverage["errors"],
+                          progress=coverage["completed"] / max(1, coverage["total"]),
+                          limitedCount=len(self._limited), errorsText="Consulte a cobertura da sessão no histórico.",
+                          switchRows=[], switchIp="", switchStatus="", l2Neighbors=[], l2Vlans=[], l2Coverage=[], l2Status="")
+        self._refresh()
+
+    def _capture_history(self, *, finished=None):
+        incomplete = list(self._limited)
+        known = {item["ip"] for item in incomplete}
+        for error in self.errors:
+            if error.get("ip") and error["ip"] not in known:
+                incomplete.append({"ip": error["ip"], "reason": "Falha na consulta do endereço", "outcome": "error"})
+                known.add(error["ip"])
+        self._history.capture(self.devices, {"completed": self._data["completed"], "total": self._data["total"],
+                                            "errors": self._data["errorCount"], "limited_targets": self._data["limitedCount"]},
+                              incomplete, finished=finished)
+
     def _publish(self):
         if not self._closed:
             self.stateChanged.emit()
 
     def _refresh(self):
+        self._data["inventoryRevision"] += 1
         self._device_positions = {record["ip"]: index for index, record in enumerate(self.devices)}
         records = [d for d in self.devices if matches_device(d, self._search, self._category, self._quality)]
         self.table.replace(sorted_devices(records, self._sort_key, self._reverse))
@@ -257,11 +308,11 @@ class ScannerController(QObject):
                        mode=self._data["mode"], workers=self._data["workers"], target_timeout=self._data["targetTimeout"],
                        credential_id=self._data["credentialId"])
 
-    def save_preferences(self, *, notify=False):
+    def save_preferences(self, *, notify=False, preferences=None):
         if self._preferences_store is None:
             return True
         try:
-            self._preferences_store.save(self.preferences_snapshot())
+            self._preferences_store.save(self.preferences_snapshot() if preferences is None else preferences)
         except (OSError, ValueError) as exc:
             logger.warning("Não foi possível salvar as preferências: %s", exc)
             message = "Não foi possível salvar as preferências. " + str(exc)
@@ -289,7 +340,7 @@ class ScannerController(QObject):
     def applyPreferences(self, values):
         try:
             merged = self.preferences_snapshot().to_dict()
-            merged.update({key: values[key] for key in ("mode", "workers", "target_timeout", "port_profile_id", "probe_timeouts", "probe_rate_limit") if key in values})
+            merged.update({key: values[key] for key in ("mode", "workers", "target_timeout", "port_profile_id", "probe_timeouts", "probe_rate_limit", "theme") if key in values})
             if "custom_port_profiles" in values:
                 profiles = values["custom_port_profiles"]
                 if not isinstance(profiles, list):
@@ -307,13 +358,42 @@ class ScannerController(QObject):
             self._data["preferencesError"] = str(exc)
             self._publish()
             return False
+        if not self.save_preferences(preferences=preferences):
+            return False
         self._preferences = preferences
         self._data.update(mode=preferences.mode, workers=preferences.workers, targetTimeout=preferences.target_timeout,
                           portProfile=preferences.port_profile.name, portCount=len(preferences.port_profile.ports),
-                          probeRateLimit=preferences.probe_rate_limit)
+                          probeRateLimit=preferences.probe_rate_limit, theme=preferences.theme)
         self.settingsChanged.emit()
         self._publish()
-        return self.save_preferences()
+        return True
+
+    @Slot(result="QVariantMap")
+    def topologySnapshot(self):
+        # Built only for the visible topology page, never for each table update.
+        return build_topology_graph(self.devices, self._inventory_gateway)
+
+    @Slot(str)
+    def selectDeviceByIp(self, ip):
+        if any(row["ip"] == ip for row in self.table.records):
+            self._selected_ip = ip
+            self._selection()
+            self.openDetails()
+
+    @Slot(result="QVariantMap")
+    def storageInfo(self):
+        log_path = next((str(handler.baseFilename) for handler in logging.getLogger().handlers
+                         if getattr(handler, "baseFilename", None)), "")
+        return {"settings": str(getattr(self._preferences_store, "path", "")),
+                "database": self._history.state["dbPath"], "logs": log_path}
+
+    @Slot(str)
+    def openStorageFolder(self, kind):
+        value = self.storageInfo().get(kind)
+        if value:
+            folder = Path(value).parent
+            if not folder.is_dir() or not QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder))):
+                self.notice.emit("Arquivos locais", "A pasta ainda não está disponível.")
 
     @Slot(str, int, float)
     def setScanDefaults(self, mode, workers, timeout):
@@ -413,7 +493,7 @@ class ScannerController(QObject):
     @Slot(str, int)
     @Slot(str, int, float)
     def startScan(self, community, workers, target_timeout=DEFAULT_TIMEOUTS.target_s):
-        if self.demo or self._data["scanning"]:
+        if self.demo or self._data["scanning"] or self._history.state["restoring"]:
             return
         try:
             targets = parse_targets(self._data["target"])
@@ -432,13 +512,18 @@ class ScannerController(QObject):
             return
         self._inventory_context = context.snapshot(self._session, targets)
         self._inventory_gateway = context.gateway
+        self._history.scan_started(self._session, self._inventory_context, options, targets)
         self.devices.clear()
         self.errors.clear()
         self._limited.clear()
         self._jobs.pop("switch", None)
+        self._switch_cancel.set()
+        self._l2_cancel.set()
+        self._jobs.pop("l2", None)
         self._started = time.monotonic()
         self._selected_ip = ""
-        self._data.update(scanning=True, stopping=False, detailsOpen=False, switchBusy=False, switchRows=[], progress=0.0,
+        self._data.update(scanning=True, stopping=False, viewMode="inventory", detailsOpen=False, switchBusy=False, switchCancellable=False, switchRows=[],
+                          l2Busy=False, l2Status="", l2Neighbors=[], l2Vlans=[], l2Coverage=[], progress=0.0,
                           scanMetrics={}, targetTimeout=options.timeouts.target_s, workers=options.workers,
                           networkContext=deepcopy(self._inventory_context), limitedCount=0, limitedTargetsText="",
                           completed=0, total=len(targets), elapsed="00:00", errorCount=0,
@@ -549,6 +634,7 @@ class ScannerController(QObject):
                 if self._started is not None:
                     elapsed = int(time.monotonic() - self._started)
                     self._data["elapsed"] = f"{elapsed // 60:02d}:{elapsed % 60:02d}"
+                self._capture_history(finished=payload)
         for _ in range(20):
             try:
                 key, token, callback, result, error = self._completions.get_nowait()
@@ -564,6 +650,7 @@ class ScannerController(QObject):
                 self._data["elapsed"] = label
                 changed = True
         if dirty:
+            self._capture_history()
             self._refresh()
         elif changed:
             self._publish()
@@ -639,7 +726,7 @@ class ScannerController(QObject):
 
     @Slot(str)
     def mapSwitch(self, community):
-        if self.demo or not self._selected_ip or self._data["switchBusy"]:
+        if self.demo or self._data["scanning"] or not self._selected_ip or self._data["switchBusy"] or self._data["l2Busy"]:
             return
         try:
             captured_community = self._community(community) or "public"
@@ -647,15 +734,94 @@ class ScannerController(QObject):
             self.notice.emit("Credencial indisponível", str(exc))
             return
         ip = self._selected_ip
-        self._data.update(switchBusy=True, switchRows=[], switchIp=ip, switchTitle=self._data["selected"].get("nome", ip), switchStatus="Consultando interfaces e tabelas MAC…")
+        self._switch_cancel = Event()
+        context = ProbeContext.standalone(30, self._switch_cancel)
+        self._data.update(switchBusy=True, switchCancellable=True, switchRows=[], switchIp=ip, switchTitle=self._data["selected"].get("nome", ip), switchStatus="Consultando interfaces e tabelas MAC… Limite de 30 segundos.")
         records = [dict(d) for d in self.devices]
         self._publish()
-        self._async("switch", lambda: self.desktop.switch_mapper.mapear_switch(ip, captured_community, records),
+        self._async("switch", lambda: self.desktop.switch_mapper.mapear_switch(ip, captured_community, records, context=context),
                     lambda ports, error: self._received_switch(ports, error, source="Tabela MAC via SNMP"))
+
+    @Slot()
+    def cancelSwitch(self):
+        if self._data["switchCancellable"]:
+            self._switch_cancel.set()
+            self._data["switchStatus"] = "Interrompendo consulta SNMP…"
+            self._publish()
+
+    @Slot(str)
+    def collectL2(self, community):
+        if (self.demo or self._data["scanning"] or self._data["switchBusy"] or self._data["l2Busy"]
+                or not self._selected_ip or self.desktop.l2_collector is None):
+            return
+        try:
+            captured_community = self._community(community) or "public"
+        except CredentialError as exc:
+            self.notice.emit("Credencial indisponível", str(exc))
+            return
+        ip = self._selected_ip
+        captured_context = deepcopy(self._inventory_context or {"comparison_scope": "session:" + (self._session or "current")})
+        self._l2_cancel = Event()
+        context = ProbeContext.standalone(30, self._l2_cancel)
+        self._data.update(l2Busy=True, l2Status="Consultando LLDP, CDP e VLANs… Limite de 30 segundos.",
+                          l2Neighbors=[], l2Vlans=[], l2Coverage=[], switchIp=ip,
+                          switchTitle=self._data["selected"].get("nome", ip))
+        self._publish()
+        self._async("l2", lambda: self.desktop.l2_collector.collect(ip, captured_community, context=context),
+                    lambda result, error: self._received_l2(ip, captured_context, result, error))
+
+    @Slot()
+    def cancelL2(self):
+        if self._data["l2Busy"]:
+            self._l2_cancel.set()
+            self._data["l2Status"] = "Interrompendo consulta; preservando os dados recebidos…"
+            self._publish()
+
+    def _received_l2(self, ip, network_context, result, error):
+        self._data["l2Busy"] = False
+        if error or not isinstance(result, dict):
+            self._data["l2Status"] = "Não foi possível coletar. Verifique credencial, permissões e suporte das MIBs."
+            self._publish()
+            return
+        host = next((device for device in self.devices if device.get("ip") == ip), None)
+        if host is None:
+            return
+        previous = host.get("l2_observation")
+        preserve_previous = bool(previous and result["partial"] and not result["neighbors"] and not result["vlan_ports"]
+                                 and not result["local_chassis"].get("raw_hex"))
+        host["l2_last_attempt"] = {key: deepcopy(result[key]) for key in ("observed_at", "partial", "cancelled", "coverage")}
+        sample = {**result, "network_context": deepcopy(network_context)}
+        if not preserve_previous:
+            host["l2_observation"] = sample
+        current_records = [dict(device, l2_observation=sample) if device.get("ip") == ip else device for device in self.devices]
+        neighbors = [item for item in correlate_neighbors(current_records) if item["observer_ip"] == ip]
+        rows = [{"summary": neighbor_summary(item), "protocol": item["protocol"],
+                 "localPort": item["local_port"].get("name", "—"), "remotePort": item["remote_port"].get("value") or "—",
+                 "remoteName": item.get("remote_name") or item["remote_chassis"].get("value") or "Não informado",
+                 "address": item["target_ip"] or ", ".join(item["management_addresses"]) or "Sem IP informado",
+                 "status": STATUS_LABELS[item["status"]]} for item in neighbors]
+        vlans = [{"port": item["name"], "bridgePort": str(item["bridge_port"]),
+                  "ifIndex": str(item["if_index"]) if item["if_index"] else "Não mapeado",
+                  "pvid": str(item["pvid"]) if item["pvid"] else "—",
+                  "tagged": (", ".join(map(str, item["tagged"])) or "Nenhuma registrada") + (" (parcial)" if not item["membership_complete"] else ""),
+                  "untagged": (", ".join(map(str, item["untagged"])) or "Nenhuma registrada") + (" (parcial)" if not item["membership_complete"] else "")} for item in result["vlan_ports"]]
+        coverage = [{"table": key, "text": f"{item['entries']} entradas · {item['requests']} requisições · "
+                    + (item["reason"] or ("Objeto indisponível" if item["unsupported"] else "Percurso concluído; tabela pode estar vazia"))
+                    + (" · fallback GETNEXT/redução de lote" if item["fallback"] else "")} for key, item in result["coverage"].items()]
+        coverage.extend({"table": "Consistência de VLAN", "text": issue} for issue in result.get("vlan_issues", []))
+        status = "Consulta interrompida" if result["cancelled"] else "Consulta parcial" if result["partial"] else "Consulta concluída"
+        status += f" · {len(rows)} relatos de vizinhos · {len(vlans)} portas com evidências de VLAN. "
+        status += "Ausência de entradas não comprova ausência de vizinhos. Modo acesso/trunk e expiração não determinados."
+        if preserve_previous:
+            status += " A observação anterior foi preservada no inventário com seu horário original."
+        self._data.update(l2Neighbors=rows, l2Vlans=vlans, l2Coverage=coverage, l2Status=status)
+        self._history.inventory_updated(self.devices)
+        self._selection()
+        self._publish()
 
     @Slot(str)
     def importMacTable(self, text):
-        if self.demo or not self._data["switchIp"] or self._data["switchBusy"]:
+        if self.demo or not self._data["switchIp"] or self._data["switchBusy"] or self._data["l2Busy"]:
             return
         try:
             ports = self.desktop.switch_mapper.mapear_por_texto(text, self.devices)
@@ -666,7 +832,7 @@ class ScannerController(QObject):
     @Slot(str, str, int)
     def collectTelnet(self, user, password, port):
         ip = self._data["switchIp"]
-        if self.demo or not ip or self._data["switchBusy"]:
+        if self.demo or not ip or self._data["switchBusy"] or self._data["l2Busy"]:
             return
         if not 1 <= port <= 65535:
             self.notice.emit("Porta inválida", "Informe uma porta de 1 a 65535.")
@@ -678,7 +844,9 @@ class ScannerController(QObject):
                     lambda ports, error: self._received_switch(ports, error, source="Tabela MAC via Telnet"))
 
     def _received_switch(self, ports, error, *, source="Mapeamento de portas"):
+        was_cancelled = self._data["switchCancellable"] and self._switch_cancel.is_set()
         self._data["switchBusy"] = False
+        self._data["switchCancellable"] = False
         if error:
             self._data["switchStatus"] = "Falha na consulta. Verifique o log e as credenciais."
             return
@@ -699,7 +867,10 @@ class ScannerController(QObject):
                              "host": host.get("nome", "Nenhum MAC aprendido"), "ip": host.get("ip", "—")})
         partial = any(port.get("coleta_parcial") for port in ports or [])
         status = ("Coleta parcial; consulte o log." if partial else "Coleta concluída.") if ports else "Nenhuma tabela obtida. Verifique comunidade, permissões e suporte da MIB."
+        if was_cancelled:
+            status = "Coleta interrompida; resultados recebidos preservados."
         self._data.update(switchRows=rows, switchStatus=status + " MAC aprendido não comprova conexão física direta.")
+        self._history.inventory_updated(self.devices)
         self._selection()
         self._publish()
 
@@ -710,5 +881,10 @@ class ScannerController(QObject):
         self.save_timer.stop()
         self.save_preferences()
         self._closed = True
+        self._l2_cancel.set()
+        self._switch_cancel.set()
         self.timer.stop()
         self.service.cancel()
+        self._capture_history()
+        if not self._history.close():
+            logger.error("O histórico não terminou a gravação no prazo de encerramento.")

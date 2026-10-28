@@ -1,6 +1,7 @@
 """Generate synthetic offline maps and exercise them in a local headless browser."""
 
 import argparse
+from datetime import datetime, timezone
 from ipaddress import IPv4Address
 import json
 from pathlib import Path
@@ -8,9 +9,50 @@ import shutil
 import subprocess
 
 from ip_scanner_helper.infrastructure.html_topology import gerar_html_topologia_interativa, render_example_topology
+from ip_scanner_helper.domain.l2 import identity
 from ip_scanner_helper.resources import RESOURCE_ROOT
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def l2_devices():
+    """One generic observer, parallel protocol reports, FDB and an unknown peer."""
+    stamp = datetime.now(timezone.utc).isoformat()
+    hostile = '</script><img src="https://invalid.example/l2" onerror="globalThis.unsafe=true">'
+    observer = {"ip": "192.0.2.10", "nome": "Observador " + hostile,
+                "tipo": "Dispositivo não identificado", "mac": "02:00:00:00:00:10"}
+    neighbors = []
+    for protocol, local, remote in (("LLDP", "Gi1/0/24", "Gi1/0/48"),
+                                    ("CDP", "Gi1/0/25", "Gi1/0/49")):
+        neighbors.append({"protocol": protocol,
+                          "local_port": {"name": local, "if_index": 124 if protocol == "LLDP" else 125,
+                                         "identity": identity(5, local.encode(), port=True)},
+                          "remote_port": identity(5, remote.encode(), port=True),
+                          "remote_chassis": identity(4 if protocol == "LLDP" else 7,
+                                                     bytes.fromhex("020000000020") if protocol == "LLDP" else b"PC-L2"),
+                          "remote_name": "PC-L2", "management_addresses": ["192.0.2.20"],
+                          "seconds_since_change": None, "expires_at": None})
+    neighbors.append({"protocol": "LLDP", "local_port": {"name": "Gi1/0/26", "if_index": 126,
+                       "identity": identity(5, b"Gi1/0/26", port=True)},
+                      "remote_port": identity(5, b"Gi0/1", port=True),
+                      "remote_chassis": identity(7, b"unresolved-peer"),
+                      "remote_name": "SEM-IP " + hostile, "management_addresses": [],
+                      "seconds_since_change": None, "expires_at": None})
+    observer["l2_observation"] = {
+        "observer_ip": observer["ip"], "observed_at": stamp, "source": "SNMP sintético LLDP/CDP/Q-BRIDGE",
+        "local_chassis": identity(4, bytes.fromhex("020000000010")),
+        "network_context": {"comparison_scope": "session:l2-browser-smoke"}, "neighbors": neighbors,
+        "vlan_ports": [{"name": "Gi1/0/24", "bridge_port": 7, "if_index": 124, "pvid": 10,
+                        "tagged": [20], "untagged": [10], "membership_complete": False}],
+        "vlan_issues": ["Participação de VLAN incompleta no exemplo sintético."],
+        "coverage": {"vlan_current": {"entries": 2, "reason": "limite de entradas"}},
+        "partial": True, "cancelled": False,
+    }
+    return [observer,
+            {"ip": "192.0.2.20", "nome": "PC-L2", "tipo": "Estação / Servidor", "mac": "02:00:00:00:00:20"},
+            {"ip": "192.0.2.30", "nome": "Impressora L2", "tipo": "Impressora",
+             "switch_observations": [{"switch_ip": "192.0.2.10", "port": "Gi1/0/7",
+                                      "source": "FDB sintética", "observed_at": stamp}]}]
 
 
 def main():
@@ -58,6 +100,10 @@ def main():
     path = output / "example-tree.html"
     path.write_text(render_example_topology(), encoding="utf-8")
     cases.append({"path": str(path), "count": len(sample["nodes"]), "kind": "example-tree"})
+    devices = l2_devices()
+    path = output / "l2-evidence.html"
+    path.write_text(gerar_html_topologia_interativa(devices, "192.0.2.254"), encoding="utf-8")
+    cases.append({"path": str(path), "count": len(devices), "kind": "l2-evidence"})
     manifest = output / "cases.json"
     manifest.write_text(json.dumps(cases), encoding="utf-8")
     command = [node, str(ROOT / "scripts" / "smoke_topology.mjs"), str(manifest)]

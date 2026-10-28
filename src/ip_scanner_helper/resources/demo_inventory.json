@@ -8,10 +8,10 @@
     "ssl_cn": "Não disponível", "web_title": "Switch Lab", "netbios_name": "Não disponível", "dns_ptr": "sw-lab.example"
   },
   {
-    "ip": "192.0.2.10", "nome": "ESTACAO-DESIGN", "fabricante": "Fabricante fictício", "tipo": "Estação / Servidor",
+    "ip": "192.0.2.10", "nome": "ESTACAO-DESIGN", "fabricante": "Fabricante fictício", "tipo": "Estação",
     "latencia": "< 1 ms", "latencia_ms": null, "mac": "02:00:00:00:00:10", "origem_mac": "Demonstração",
     "portas": "SMB(445) · RDP(3389)", "origem": "DNS simulado", "confianca": "Baixa",
-    "evidencia_categoria": "Serviços RDP/SMB; função não confirmada", "evidencias": ["Dados fictícios"],
+    "evidencia_categoria": "Apenas SMB/RDP ativos; perfil típico de estação (função não confirmada)", "evidencias": ["Dados fictícios"],
     "status": "Demonstração — dados fictícios", "snmp_descr": "Não disponível", "ssl_cn": "estacao.example",
     "web_title": "Não disponível", "netbios_name": "ESTACAO-DESIGN", "dns_ptr": "estacao.example",
     "switch_observations": [{"switch_ip": "192.0.2.2", "port": "Gi1/0/4", "direct_link_confirmed": false}]

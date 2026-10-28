@@ -9,9 +9,16 @@ from ip_scanner_helper.infrastructure.diagram_export import export_diagram
 from ip_scanner_helper.infrastructure.network.interfaces import discover_interfaces
 from ip_scanner_helper.infrastructure.network.resolver import NetworkResolver
 from ip_scanner_helper.infrastructure.network.switch_port_mapper import SwitchPortMapper
+from ip_scanner_helper.infrastructure.network.l2_discovery import L2Collector
 from ip_scanner_helper.infrastructure.preferences import JsonPreferencesStore, default_settings_path
 from ip_scanner_helper.infrastructure.credential_vault import EncryptedCredentialVault
 from ip_scanner_helper.infrastructure.windows_dpapi import WindowsDPAPI
+from ip_scanner_helper.application.history_service import HistoryService
+from ip_scanner_helper.infrastructure.history_store import SqliteHistoryStore
+
+
+def create_history_service():
+    return HistoryService(SqliteHistoryStore(default_settings_path().with_name("inventory.db")), queue_size=8)
 
 
 def create_credential_vault():
@@ -34,4 +41,5 @@ def create_desktop_services():
         render_map=gerar_html_topologia_interativa,
         switch_mapper=SwitchPortMapper(),
         export_diagram=export_diagram,
+        l2_collector=L2Collector(),
     )

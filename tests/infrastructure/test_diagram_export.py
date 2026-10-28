@@ -19,7 +19,7 @@ class DiagramExportTests(unittest.TestCase):
     def test_drawio_has_two_editable_pages_and_valid_references_for_all_paths(self):
         document = ET.fromstring(render_drawio(self.fixture(), "192.0.2.253"))
         self.assertEqual(document.tag, "mxfile")
-        self.assertEqual([page.get("name") for page in document.findall("diagram")], ["Categorias", "Árvore FDB"])
+        self.assertEqual([page.get("name") for page in document.findall("diagram")], ["Categorias", "Caminhos e vizinhos"])
         for page in document.findall("diagram"):
             objects = page.findall(".//object")
             identifiers = {item.get("id") for item in objects} | {"0", "1"}

@@ -32,9 +32,13 @@ class NetworkProbe(Protocol):
 
 
 class SwitchMapper(Protocol):
-    def mapear_switch(self, ip: str, community: str, devices: list[dict]) -> list[dict]: ...
+    def mapear_switch(self, ip: str, community: str, devices: list[dict], *, context: ProbeContext | None = None) -> list[dict]: ...
     def mapear_por_texto(self, text: str, devices: list[dict]) -> list[dict]: ...
     def mapear_por_telnet(self, ip: str, user: str, password: str, port: int, devices: list[dict]) -> list[dict]: ...
+
+
+class L2Discovery(Protocol):
+    def collect(self, ip: str, community: str, *, context: ProbeContext) -> dict: ...
 
 
 class PreferencesStore(Protocol):
@@ -67,3 +71,4 @@ class DesktopServices:
     render_map: Callable[[list[dict], str | None], str]
     switch_mapper: SwitchMapper
     export_diagram: Callable[[str | Path, list[dict], str | None, str], None]
+    l2_collector: L2Discovery | None = None

@@ -16,7 +16,8 @@
       id: group.observer_ip, ip: group.observer_ip, nome: 'Observador fora do inventário', tipo: 'Referência FDB',
       icon: 'network', color: '#727b88', state: 'unknown', detail: 'Referência de uma tabela FDB. Equipamento não inventariado.'});
   }
-  const switchIds = [...graph.nodes.filter(node => foldType(node.tipo).includes('switch') || fdbSources.has(node.id)).map(node => node.id), ...virtualNodes.keys()];
+  // Observers get navigation controls without changing their inventory category.
+  const switchIds = [...graph.nodes.filter(node => foldType(node.tipo).includes('switch') || fdbSources.has(node.id) || node.neighbor_observer).map(node => node.id), ...virtualNodes.keys()];
   const switchSet = new Set(switchIds), expandedSwitches = new Set();
   let activeSwitch = null, childPage = 0, animation = 0;
   function foldType(value) {return String(value).toLocaleLowerCase();}
@@ -113,7 +114,7 @@
     const ids = eligibleSwitches(), index = ids.indexOf(activeSwitch);
     document.getElementById('nextSwitch').disabled = !ids.length;
     document.getElementById('previousSwitch').disabled = !ids.length;
-    document.getElementById('switchPosition').textContent = index >= 0 ? `${index + 1} / ${ids.length}` : `${ids.length} switches`;
+    document.getElementById('switchPosition').textContent = index >= 0 ? `${index + 1} / ${ids.length}` : `${ids.length} switches / observadores`;
   }
   function focusSwitch(id) {
     const anchor = anchors.get(id)?.[0];
@@ -171,17 +172,17 @@
     document.getElementById('detailBody').textContent = node.detail;
     const list = document.getElementById('relations'); list.replaceChildren();
     const paths = links.filter(edge => edge.to === id || edge.from === id);
-    document.getElementById('relationCount').textContent = `${paths.length} relações ${graph.example ? 'do exemplo' : 'FDB registradas'}`;
+    document.getElementById('relationCount').textContent = `${paths.length} relações ${graph.example ? 'do exemplo' : 'registradas'}`;
     for (const edge of paths) {
       const row = document.createElement('li');
       const title = document.createElement('strong');
-      title.textContent = `${edge.from} → ${edge.to} · ${edge.port}`;
+      title.textContent = edge.kind === 'reported_neighbor' ? edge.label : `${edge.from} → ${edge.to} · ${edge.port}`;
       const detail = document.createElement('p');
       detail.textContent = `${edge.source} · ${edge.observed_at}. ${graph.example ? 'Relação fictícia.' : 'Vínculo direto não confirmado.'}`;
       row.append(title, detail); list.append(row);
     }
     if (!paths.length) {
-      const row = document.createElement('li'); row.textContent = 'Nenhum caminho FDB registrado para este equipamento.'; list.append(row);
+      const row = document.createElement('li'); row.textContent = 'Nenhum caminho ou vizinho associado ao inventário. Relatos sem correspondência aparecem nos dados do equipamento.'; list.append(row);
     }
     const isSwitch = switchSet.has(id) || id === '__unmapped__';
     document.getElementById('detailTabs').hidden = !isSwitch;
@@ -274,7 +275,7 @@
         }
       }
       const path = element('path', {d: route,
-        class: 'fdb-path', stroke: '#557d80', 'stroke-width': 2, 'stroke-dasharray': '5 5', fill: 'none',
+        class: 'fdb-path', stroke: edge.kind === 'reported_neighbor' ? '#516d9a' : '#557d80', 'stroke-width': 2, 'stroke-dasharray': edge.kind === 'reported_neighbor' ? '2 4' : '5 5', fill: 'none',
         opacity: selected && edge.from !== selected && edge.to !== selected ? .2 : 1,
         tabindex: 0, role: 'button', 'aria-label': edge.label, 'data-kind': edge.kind});
       path.append(element('title', {}, `${edge.label}\n${edge.source} · ${edge.observed_at}`));
@@ -307,7 +308,7 @@
     document.getElementById('groupPageLabel').textContent = `${groupsPage * pageSize + 1}–${Math.min(matched.length, (groupsPage + 1) * pageSize)} de ${matched.length} dispositivos`;
     document.getElementById('previousGroups').disabled = groupsPage === 0;
     document.getElementById('nextGroups').disabled = groupsPage + 1 >= count;
-    document.getElementById('status').textContent = `${graph.example ? 'Malha do exemplo fictício' : 'Malha de caminhos FDB'} · ${contexts} observadores de contexto. Até 12 resultados e 200 caminhos por página; evidências completas nos detalhes.`;
+    document.getElementById('status').textContent = `${graph.example ? 'Malha do exemplo fictício' : 'Malha de caminhos e vizinhos'} · ${contexts} observadores de contexto. Até 12 resultados e 200 caminhos por página; evidências completas nos detalhes.`;
     if (reset) fit(); else transform(); restoreFocus(focusKey);
   }
   function renderHierarchy(matches, reset, focusKey) {
@@ -386,8 +387,8 @@
           const bus = firstRow - 32;
           route = `M${a.x} ${a.bottom} V${bus} H${channel} V${b.top-14} H${b.x} V${b.top}`;
         }
-        const path = element('path', {d:route, class:'tree-branch',fill:'none',stroke:'#829e99','stroke-width':1.5,
-          'stroke-dasharray':graph.example?'':'5 5','data-kind':edge.kind,'aria-label':edge.label});
+        const path = element('path', {d:route, class:'tree-branch',fill:'none',stroke:edge.kind === 'reported_neighbor'?'#516d9a':'#829e99','stroke-width':1.5,
+          'stroke-dasharray':graph.example?'':edge.kind === 'reported_neighbor'?'2 4':'5 5','data-kind':edge.kind,'aria-label':edge.label});
         path.append(element('title',{},edge.label));layer.append(path);
       }
       scene.prepend(layer);
@@ -399,7 +400,7 @@
     document.getElementById('previousGroups').disabled = groupsPage === 0;
     document.getElementById('nextGroups').disabled = (groupsPage + 1) * 12 >= principals.length;
     document.getElementById('status').textContent = graph.example ? 'Exemplo JSON · hierarquia e estados fictícios. Selecione um switch para explorar.'
-      : 'Posições lógicas · linhas FDB não confirmam cabos. Gateway é uma referência. Sem resposta não significa offline.';
+      : 'Posições lógicas · verde: FDB; azul: relato LLDP/CDP. Linhas não certificam cabos. Gateway é referência. Sem resposta não significa offline.';
     updateNavigation(); if (reset) fit(); else transform(); restoreFocus(focusKey);
   }
   function render(reset = false, focusKey = null) {

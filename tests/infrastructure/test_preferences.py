@@ -10,6 +10,19 @@ from ip_scanner_helper.infrastructure.preferences import JsonPreferencesStore, M
 
 
 class PreferencesStoreTests(unittest.TestCase):
+    def test_schema_four_migration_keeps_exact_backup_and_adds_appearance(self):
+        original = '{"schema_version":4,"preferences":{"workers":9,"credential_id":"' + 'b' * 32 + '"}}'
+        self.write(original)
+        preferences = self.store.load()
+        self.assertEqual(preferences.theme, "light")
+        self.store.save(replace(preferences, theme="dark"))
+        self.assertEqual(self.store.migration_backup.read_text(encoding="utf-8"), original)
+        self.assertIn(".v4-backup-", self.store.migration_backup.name)
+        restored = JsonPreferencesStore(self.path).load()
+        self.assertEqual(restored.theme, "dark")
+        self.assertEqual(restored.workers, 9)
+        self.assertEqual(restored.credential_id, 'b' * 32)
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.addCleanup(self.directory.cleanup)
@@ -30,7 +43,7 @@ class PreferencesStoreTests(unittest.TestCase):
         self.store.save(expected)
         self.assertEqual(JsonPreferencesStore(self.path).load(), expected)
         payload = json.loads(self.path.read_text(encoding="utf-8"))
-        self.assertEqual(payload["schema_version"], 4)
+        self.assertEqual(payload["schema_version"], 5)
         self.assertEqual(set(payload["preferences"]), set(expected.to_dict()))
         self.assertFalse(list(self.path.parent.glob("*.tmp")))
 
@@ -83,7 +96,7 @@ class PreferencesStoreTests(unittest.TestCase):
         self.store.save(preferences)
         backup = self.store.migration_backup
         self.assertEqual(backup.read_text(encoding="utf-8"), original)
-        self.assertEqual(json.loads(self.path.read_text(encoding="utf-8"))["schema_version"], 4)
+        self.assertEqual(json.loads(self.path.read_text(encoding="utf-8"))["schema_version"], 5)
         self.assertEqual(JsonPreferencesStore(self.path).load(), preferences)
         self.store.save(preferences)
         self.assertEqual(len(list(self.path.parent.glob("settings.v1-backup-*.json"))), 1)

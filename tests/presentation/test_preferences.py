@@ -13,6 +13,36 @@ from ip_scanner_helper.presentation.qt_controller import ScannerController
 
 
 class DesktopPreferencesTests(unittest.TestCase):
+    def test_appearance_only_changes_after_validated_successful_save(self):
+        c, _, store = self.controller()
+        store.save.side_effect = OSError("simulado")
+        self.assertFalse(c.applyPreferences({"theme": "dark", "workers": 8}))
+        self.assertEqual(c.state["theme"], "light")
+        self.assertEqual(c.state["workers"], 32)
+        self.assertEqual(c.preferences_snapshot().theme, "light")
+        store.save.side_effect = None
+        self.assertFalse(c.applyPreferences({"theme": "invalid", "workers": 8}))
+        self.assertEqual(c.state["theme"], "light")
+        self.assertTrue(c.applyPreferences({"theme": "dark"}))
+        self.assertEqual(c.state["theme"], "dark")
+        self.assertEqual(store.save.call_args.args[0].theme, "dark")
+
+    def test_native_topology_uses_whole_inventory_and_current_gateway(self):
+        c, _, _ = self.controller()
+        c.devices = [{"ip": "192.0.2.1", "nome": "Gateway", "tipo": "Roteador / Firewall"},
+                     {"ip": "192.0.2.2", "nome": "PC-LAB", "tipo": "Estação"}]
+        c._inventory_gateway = "192.0.2.1"
+        c._refresh()
+        c.search("PC-LAB")
+        self.assertEqual(c.table.rowCount(), 1)
+        graph = c.topologySnapshot()
+        self.assertEqual(len(graph["nodes"]), 2)
+        self.assertEqual(graph["gateway"], "192.0.2.1")
+        self.assertEqual(graph["edges"], [])
+        c.selectDeviceByIp("192.0.2.2")
+        self.assertTrue(c.state["detailsOpen"])
+        self.assertEqual(c.state["selectedIp"], "192.0.2.2")
+
     def test_rate_restores_and_changes_only_the_next_scan(self):
         c, service, store = self.controller(replace(Preferences(), probe_rate_limit=30))
         self.assertEqual(c.state["probeRateLimit"], 30)

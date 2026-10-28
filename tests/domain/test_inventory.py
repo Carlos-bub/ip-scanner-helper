@@ -34,3 +34,11 @@ class InventoryTests(unittest.TestCase):
         device = {"nome": "Printer", "tipo": "Impressora", "mac": "Desconhecido"}
         self.assertTrue(matches_device(device, category="PRINTER", quality="Sem MAC"))
         self.assertFalse(matches_device(device, category="SWITCH", quality="Sem MAC"))
+
+    def test_workstation_and_server_filters_are_distinct(self):
+        workstation = {"nome": "PC-01", "tipo": "Estação"}
+        server = {"nome": "SRV-01", "tipo": "Servidor"}
+        self.assertTrue(matches_device(workstation, category="ESTACAO"))
+        self.assertFalse(matches_device(workstation, category="SERVIDOR"))
+        self.assertTrue(matches_device(server, category="SERVIDOR"))
+        self.assertFalse(matches_device(server, category="ESTACAO"))

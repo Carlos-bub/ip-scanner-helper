@@ -37,7 +37,7 @@ def create_window(controller):
     return engine, engine.rootObjects()[0]
 
 
-def run(args, *, service, desktop, preferences_store=None, credential_vault=None):
+def run(args, *, service, desktop, preferences_store=None, credential_vault=None, history_service=None):
     app = QApplication.instance() or QApplication([sys.argv[0]])
     app.setApplicationName("IP Scanner Helper")
     app.setOrganizationName("IPScannerHelper")
@@ -47,7 +47,8 @@ def run(args, *, service, desktop, preferences_store=None, credential_vault=None
     credential_vault = None if demo else credential_vault
     preferences = preferences_store.load() if preferences_store is not None else Preferences()
     controller = ScannerController(service=service, desktop=desktop, demo=demo,
-                                   preferences=preferences, preferences_store=preferences_store, credential_vault=credential_vault)
+                                   preferences=preferences, preferences_store=preferences_store, credential_vault=credential_vault,
+                                   history_service=history_service)
     try:
         engine, window = create_window(controller)
     except Exception:

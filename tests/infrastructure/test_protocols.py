@@ -50,7 +50,7 @@ class ProtocolTests(unittest.TestCase):
                 self.assertLessEqual(run.call_args.kwargs["timeout"], 2.5)
 
     def test_mapper_preserves_more_than_sixty_interfaces(self):
-        def walk(ip, community, root, timeout, max_reps):
+        def walk(ip, community, root, timeout, max_reps, **kwargs):
             result = WalkResult()
             if root == "1.3.6.1.2.1.31.1.1.1.1":
                 result.update({f"{root}.{i}": f"Gi1/0/{i}".encode() for i in range(1, 81)})
@@ -62,8 +62,25 @@ class ProtocolTests(unittest.TestCase):
             ports = SwitchPortMapper.mapear_switch("192.0.2.1")
         self.assertEqual(len(ports), 80)
 
+    def test_unmapped_bridge_port_does_not_borrow_the_same_numbered_interface_name(self):
+        def walk(ip, community, root, *args, **kwargs):
+            result = WalkResult()
+            if root == "1.3.6.1.2.1.31.1.1.1.1":
+                result[root + ".3"] = b"UnrelatedInterface"
+            if root == "1.3.6.1.2.1.17.4.3.1.2":
+                result[root + ".2.0.0.0.0.1"] = 3
+                result[root + ".2.0.0.0.0.2"] = 0
+                result[root + ".2.0.0.0.0.999"] = 3
+            return result
+        with patch("ip_scanner_helper.infrastructure.network.switch_port_mapper.snmp_walk_tree", side_effect=walk):
+            ports = SwitchPortMapper.mapear_switch("192.0.2.1")
+        learned = next(item for item in ports if item["macs"])
+        self.assertIsNone(learned["if_index"])
+        self.assertIn("Bridge porta 3", learned["nome"])
+        self.assertEqual(learned["macs"], ["02:00:00:00:00:01"])
+
     def test_mapper_partial_collection_is_reported(self):
-        def walk(ip, community, root, timeout, max_reps):
+        def walk(ip, community, root, timeout, max_reps, **kwargs):
             result = WalkResult()
             result.partial = True
             if root == "1.3.6.1.2.1.31.1.1.1.1":

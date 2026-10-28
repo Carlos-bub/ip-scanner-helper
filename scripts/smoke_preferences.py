@@ -54,6 +54,9 @@ def main(capture=False):
             point = button.mapToScene(QPointF(button.width() / 2, button.height() / 2)).toPoint()
             QTest.mouseClick(window, Qt.LeftButton, pos=point)
             QTest.qWait(120)
+            if name == "preferencesButton":
+                # Collection regressions explicitly navigate to their section.
+                click("preferencesTab0")
 
         def edit(name, text):
             click(name)

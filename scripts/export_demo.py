@@ -16,8 +16,8 @@ def main():
     devices = json.loads((RESOURCE_ROOT / "demo_inventory.json").read_text(encoding="utf-8"))
     output = ROOT / "docs"
     output.mkdir(exist_ok=True)
-    (output / "demo-topology.html").write_text(gerar_html_topologia_interativa(devices, "192.0.2.1"), encoding="utf-8")
-    (output / "demo-topology-tree.html").write_text(render_example_topology(), encoding="utf-8")
+    (output / "demo-topology.html").write_text(gerar_html_topologia_interativa(devices, "192.0.2.1"), encoding="utf-8", newline="\n")
+    (output / "demo-topology-tree.html").write_text(render_example_topology(), encoding="utf-8", newline="\n")
     export_csv(output / "demo-inventory.csv", devices)
     export_json(output / "demo-inventory.json", devices)
     for kind in ("drawio", "xml", "dot"):

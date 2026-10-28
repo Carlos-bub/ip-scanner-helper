@@ -1,4 +1,6 @@
-# Topologia interativa — 2.0.9
+# Topologia interativa — 2.0.10
+
+Desde a 2.1.0, a aba **Topologia** oferece também um mapa nativo QML com grupos, zoom, arraste e seleção. **Abrir mapa detalhado** mantém o HTML descrito abaixo. Ambos usam o mesmo modelo de evidências e o layout compartilhado; veja [navegação e diferenças entre as visões](navigation-and-appearance.md).
 
 O botão **Mapa da rede** abre uma página local no navegador padrão. A tabela continua sendo a tela principal do aplicativo. O mapa é um snapshot do inventário e das observações disponíveis na exportação; não consulta equipamentos nem usa serviços externos.
 
@@ -23,7 +25,7 @@ FDB informa onde um MAC foi aprendido. As linhas são tracejadas e identificadas
 
 Novos resultados de mapeamento registram origem (SNMP, Telnet ou texto importado) e instante de registro. Observações antigas sem esses campos informam a ausência; não recebem uma data inventada. Os detalhes preservam todos os caminhos do equipamento, inclusive quando um extremo não aparece na página atual.
 
-No inventário, verde indica equipamento inventariado nesta coleta; âmbar indica identificação parcial. Isso não garante presença contínua após o snapshot. Ausência de resposta, cancelamento ou tempo esgotado não produz um estado offline. A coleta física LLDP/CDP e a identificação de VLANs ficam para a próxima etapa, conforme o recorte escolhido pelo usuário.
+No inventário, verde indica equipamento inventariado nesta coleta; âmbar indica identificação parcial. Isso não garante presença contínua após o snapshot. Ausência de resposta, cancelamento ou tempo esgotado não produz um estado offline. LLDP/CDP e VLANs podem ser consultados sob demanda nos detalhes do equipamento; veja o [guia L2](l2-discovery.md). Relatos LLDP/CDP aparecem em azul pontilhado, com origem, instante e situação da correlação, sem certificar cabeamento. Vizinhos sem correspondência ficam nos detalhes; a categoria do observador é preservada.
 
 ## Exemplo de hierarquia completa
 
@@ -43,8 +45,8 @@ O layout usa a maior altura real de cada linha e reposiciona os elementos ao mud
 
 Em **Exportar**, o aplicativo oferece:
 
-- **Draw.io / Diagrams.net (`.drawio` ou `.xml`)**: XML não comprimido, com páginas **Categorias** e **Árvore FDB**, containers recolhíveis, equipamentos, referências externas e caminhos. A árvore pode representar o mesmo IP em mais de um grupo para preservar múltiplos caminhos. Origem, instante e `direct_link_confirmed=false` ficam nos dados das relações.
-- **Graphviz (`.dot`)**: grafo dirigido com clusters de categoria, nós únicos por IP e todas as relações FDB, incluindo observadores externos. Não é `strict`, preservando caminhos paralelos. O gateway informado aparece como contexto do diagrama, sem criar uma aresta.
+- **Draw.io / Diagrams.net (`.drawio` ou `.xml`)**: XML não comprimido, com páginas **Categorias** e **Caminhos e vizinhos**, containers recolhíveis, equipamentos, referências externas e caminhos. A árvore pode representar o mesmo IP em mais de um grupo para preservar múltiplos caminhos. Origem, instante, tipo de relação, porta remota e `direct_link_confirmed=false` ficam nos dados das relações. Cobertura e parcialidade de VLAN ficam nos detalhes dos equipamentos.
+- **Graphviz (`.dot`)**: grafo dirigido com clusters de categoria, nós únicos por IP e todas as relações FDB e LLDP/CDP, incluindo observadores externos. Não é `strict`, preservando caminhos paralelos. O gateway informado aparece como contexto do diagrama, sem criar uma aresta.
 
 Os formatos exportam o inventário completo, independentemente dos filtros da tabela. A paginação do navegador não recorta esses arquivos. Diagramas não herdam posição, zoom ou ramo aberto no HTML; o usuário pode reorganizá-los no editor de destino.
 

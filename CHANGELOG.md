@@ -1,5 +1,46 @@
 # Changelog
 
+## 2.1.0 — 2026-10-28
+
+- Quatro páginas principais: Inventário, Topologia, IPAM e histórico, e Configurações; tabela inicial com largura preservada, sem reiniciar a coleta ao navegar.
+- Central de configurações com seções Geral, Varredura, Portas TCP, Tempos, Cofre SNMP e Dados e arquivos; backup/restauração e abertura de pastas dos arquivos existentes.
+- Temas claro, escuro e automático, com paleta semântica e schema 5; migração dos schemas 1–4 com backup exato antes da gravação.
+- Rascunhos protegidos ao navegar/fechar; preferências aplicadas somente após gravação bem-sucedida, conservando opções da sessão ativa.
+- Mapa nativo QML com grupos recolhíveis, busca, pan, zoom e acesso ao equipamento no inventário; layout compartilhado com o HTML, sem WebEngine e sem inferir cabos.
+- Grade virtualizada de endereços no IPAM, preservando estados de observação, parcialidade, reservas e ausência de resposta, sem afirmar IP livre.
+- 315 testes, seis scripts gráficos Qt e 12 cenários de mapa HTML aprovados; topologia nativa exercitada com 4.096 registros fictícios.
+
+## 2.0.12 — 2026-10-28
+
+- Classificação por evidências independentes, priorizando assinaturas explícitas e mantendo conflitos do mesmo nível como inconclusivos, com origem e assinatura na justificativa.
+- Correspondência por palavras completas e convenções de hostname delimitadas, eliminando falsos positivos como `pilot`, `administracao-01` e `apple-01`.
+- Títulos Web, modelos e certificados deixam de ser usados como hostname na classificação; reconhecimento SNMP de câmeras e telefones corrigido.
+- Fabricante, portas, banners genéricos SSH/FTP e distribuição Linux deixam de determinar categoria sozinhos; serviços e fabricante permanecem no inventário.
+- Builds Windows compartilhadas entre cliente e servidor removidas das assinaturas de categoria (9600, 19041 e 19042).
+- NetBIOS consultado independentemente de PTR, respeitando os limites existentes por sonda e IP; simulações de coleta atualizadas.
+- Novos testes de regressão para conflitos, prioridade das evidências, nomes, serviços e integração do scanner. Critérios em `docs/classification.md`.
+- 311 testes e teste gráfico Qt aprovados; executável 2.0.12 autoverificado, com as 18 regressões de classificação também aprovadas contra o módulo empacotado.
+
+## 2.0.11 — 2026-10-28
+
+- Histórico SQLite com sessões, contexto, alvos, opções não secretas, evidências e estado final; checkpoints e worker com fila limitada, mantendo a tabela como tela principal.
+- Abertura offline de inventários anteriores e comparação por ambiente, alvos e opções compatíveis, com alterações de nome/MAC/serviços e ausências inconclusivas quando a cobertura é insuficiente.
+- Visão dos endereços da coleta, reservas e tags manuais separadas por ambiente, sem afirmar que um IP está livre.
+- Backup SQLite consistente e restauração validada com backup prévio, migração versionada e preservação de bancos desconhecidos ou futuros.
+- Histórico sem comunidades/senhas; bancos e arquivos auxiliares excluídos do Git e pacotes; demonstração/autoverificação isoladas dos dados pessoais.
+- Classificações preservadas conforme o inventário, mantendo o trabalho separado de distinção entre estações e servidores.
+- 289 testes, cinco scripts gráficos e 12 cenários de topologia aprovados; executável 2.0.11 autoverificado.
+
+## 2.0.10 — 2026-10-27
+
+- Consulta L2 sob demanda nos detalhes e menu da linha: LLDP/CDP, portas locais/remotas e VLANs por porta, com abas de vizinhos, participação em VLANs e cobertura.
+- GETBULK v2c adaptativo, tratamento de `tooBig`, fallback GETNEXT e validação de limites/ordem dos OIDs; proteção contra componentes BER excessivos.
+- Orçamento global e cancelamento nas consultas SNMP de switches; credencial e contexto capturados antes da execução, com dados parciais explícitos.
+- IDs de chassi/porta tipados; correlação unilateral, recíproca, ambígua, divergente ou fora da janela local, sem presumir cabo direto nem TTL.
+- PVID/tagged/untagged por Q-BRIDGE-MIB; índices LLDP, bridge e ifIndex distintos, sem inferência de modo acesso/trunk ou nome de interface pelo número da bridge.
+- Mapa e diagramas distinguem caminhos FDB de relatos LLDP/CDP e preservam parcialidade, cobertura e múltiplas portas; observadores genéricos navegáveis sem mudança de categoria.
+- 259 testes aprovados, quatro scripts Qt e 12 cenários de navegador. Validação simulada; interoperabilidade com switches reais permanece pendente.
+
 ## 2.0.9 — 2026-10-27
 
 - Mapa offline com cabeçalho compacto, árvore como visão inicial e foco no ramo selecionado; zoom animado, pan, enquadramento e navegação sequencial entre switches.

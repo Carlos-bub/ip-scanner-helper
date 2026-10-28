@@ -1,6 +1,6 @@
 """Small, strict BER codec shared by the SNMP discovery and switch mapper.
 
-Only SNMP v1/v2c GET/GETNEXT and response values used by this project are supported.
+Only SNMP v1/v2c GET/GETNEXT, v2c GETBULK and response values are supported.
 Unsupported packets fail explicitly instead of being interpreted as empty tables.
 """
 
@@ -11,6 +11,12 @@ import socket
 
 class SnmpError(ValueError):
     """Malformed packet, mismatched response or SNMP agent error."""
+
+
+class SnmpAgentError(SnmpError):
+    def __init__(self, status):
+        self.status = status
+        super().__init__(f"Agente SNMP retornou erro {status}")
 
 
 def encode_tlv(tag: int, value: bytes) -> bytes:
@@ -29,8 +35,11 @@ def _base128(value: int) -> bytes:
 
 
 def oid_parts(oid: str) -> tuple[int, ...]:
-    parts = tuple(int(part) for part in oid.strip(".").split("."))
-    if len(parts) < 2 or parts[0] not in (0, 1, 2) or min(parts) < 0:
+    try:
+        parts = tuple(int(part) for part in oid.strip(".").split("."))
+    except (ValueError, AttributeError):
+        raise SnmpError("OID inválido") from None
+    if not 2 <= len(parts) <= 128 or parts[0] not in (0, 1, 2) or min(parts) < 0 or max(parts) > 0xFFFFFFFF:
         raise SnmpError("OID inválido")
     if parts[0] < 2 and parts[1] > 39:
         raise SnmpError("Segundo componente do OID inválido")
@@ -45,11 +54,18 @@ def encode_oid(oid: str) -> bytes:
 def decode_oid(data: bytes) -> str:
     values = []
     value = 0
+    component_bytes = 0
     for byte in data:
+        component_bytes += 1
         value = (value << 7) | (byte & 127)
+        if component_bytes > 5 or value > 0xFFFFFFFF + (80 if not values else 0):
+            raise SnmpError("Componente OID excede o limite SMI")
         if not byte & 128:
             values.append(value)
+            if len(values) > 127:
+                raise SnmpError("OID excede 128 componentes")
             value = 0
+            component_bytes = 0
     if not values or data[-1] & 128:
         raise SnmpError("OID truncado")
     first = values.pop(0)
@@ -107,7 +123,7 @@ def parse_response(data: bytes) -> Response:
     error = int.from_bytes(pdu.read(2)[1], "big")
     pdu.read(2)
     if error:
-        raise SnmpError(f"Agente SNMP retornou erro {error}")
+        raise SnmpAgentError(error)
     bindings = Reader(pdu.read(0x30)[1])
     pdu.done()
     values = []
@@ -125,20 +141,26 @@ def parse_response(data: bytes) -> Response:
     return Response(request_id, community, version, tuple(values))
 
 
-def build_request(oid, community="public", version=1, request_id=101, next_oid=False):
+def build_request(oid, community="public", version=1, request_id=101, next_oid=False, *, bulk_repetitions=None):
     if version not in (0, 1) or not 0 <= request_id < 2**31:
         raise SnmpError("Versão ou identificador SNMP inválido")
+    if bulk_repetitions is not None and (version != 1 or next_oid
+            or type(bulk_repetitions) is not int or not 1 <= bulk_repetitions <= 50):
+        raise SnmpError("GETBULK requer v2c e 1 a 50 repetições")
     binding = encode_tlv(0x30, encode_tlv(6, encode_oid(oid)) + b"\x05\x00")
     rid = request_id.to_bytes(max(1, (request_id.bit_length() + 8) // 8), "big")
-    pdu = encode_tlv(0xA1 if next_oid else 0xA0,
-                     encode_tlv(2, rid) + b"\x02\x01\x00" * 2 + encode_tlv(0x30, binding))
+    pdu = encode_tlv(0xA5 if bulk_repetitions is not None else 0xA1 if next_oid else 0xA0,
+                     encode_tlv(2, rid) + b"\x02\x01\x00"
+                     + encode_tlv(2, bytes([bulk_repetitions or 0])) + encode_tlv(0x30, binding))
     return encode_tlv(0x30, encode_tlv(2, bytes([version]))
                       + encode_tlv(4, community.encode("utf-8")) + pdu)
 
 
-def query(ip, oid, community="public", version=1, timeout=0.5, next_oid=False, *, context=None):
+def query(ip, oid, community="public", version=1, timeout=0.5, next_oid=False, *, context=None, bulk_repetitions=None):
+    if context is not None:
+        context.check()
     request_id = secrets.randbelow(2**30)
-    packet = build_request(oid, community, version, request_id, next_oid)
+    packet = build_request(oid, community, version, request_id, next_oid, bulk_repetitions=bulk_repetitions)
     # A connected UDP socket only accepts datagrams from the selected endpoint.
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         sock.settimeout(context.timeout(timeout) if context is not None else timeout)

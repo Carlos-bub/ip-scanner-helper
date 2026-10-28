@@ -13,16 +13,16 @@ Basic.Button {
     font.weight: Font.Medium
     background: Rectangle {
         radius: 6
-        color: !control.enabled ? "#f0f2f4" : control.variant === "primary" ? (control.down ? "#204b3e" : control.hovered ? "#285e4d" : Theme.accent)
-                    : control.variant === "danger" ? "#ab3535" : control.down ? "#edf0f3" : control.hovered ? "#f7f9fa" : "#ffffff"
+        color: !control.enabled ? Theme.disabled : control.variant === "primary" ? (control.down ? Theme.accentDown : control.hovered ? Theme.accentHover : Theme.accent)
+                    : control.variant === "danger" ? Theme.dangerFill : control.down ? Theme.hover : control.hovered ? Theme.subtle : Theme.surface
         border.width: control.activeFocus ? 2 : control.variant === "quiet" || control.variant === "primary" ? 0 : 1
         border.color: control.activeFocus ? Theme.accent : Theme.border
     }
-    contentItem: Text {
+    contentItem: Text { textFormat: Text.PlainText;
         id: label
         text: control.text
         font: control.font
-        color: !control.enabled ? "#a0a9b2" : control.variant === "primary" || control.variant === "danger" ? "white" : Theme.ink
+        color: !control.enabled ? Theme.disabledInk : control.variant === "danger" ? "white" : control.variant === "primary" ? Theme.accentInk : Theme.ink
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight

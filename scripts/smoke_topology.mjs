@@ -107,6 +107,66 @@ try {
     const started = performance.now(), url = pathToFileURL(fixture.path).href;
     await client.send('Page.navigate', {url});
     await until(() => client.evaluate(`location.href === ${JSON.stringify(url)} && document.readyState === 'complete' && document.getElementById('summary')?.textContent.includes('dispositivos')`), 'carregar mapa');
+    if (fixture.kind === 'l2-evidence') {
+      const graph = await client.evaluate('JSON.parse(document.getElementById("graph-data").textContent)');
+      assert.equal(graph.nodes.length, fixture.count, 'Relato sem IP não cria dispositivo artificial');
+      assert.deepEqual(graph.nodes.map(node => node.ip), ['192.0.2.10', '192.0.2.20', '192.0.2.30']);
+      const observer = graph.nodes.find(node => node.ip === '192.0.2.10');
+      assert.equal(observer.category, 'unknown', 'Observador SNMP conserva a categoria inventariada');
+      assert.equal(observer.tipo, 'Dispositivo não identificado');
+      assert.equal(observer.neighbor_observer, true);
+      const reports = graph.edges.filter(edge => edge.kind === 'reported_neighbor');
+      assert.equal(reports.length, 2, 'Protocolos/portas paralelos preservam relatos distintos');
+      assert.deepEqual(reports.map(edge => [edge.source, edge.port, edge.remote_port]),
+        [['LLDP', 'Gi1/0/24', 'Gi1/0/48'], ['CDP', 'Gi1/0/25', 'Gi1/0/49']]);
+      assert(reports.every(edge => edge.to === '192.0.2.20' && edge.neighbor_status === 'unilateral' && !edge.direct_link_confirmed));
+      assert.equal(graph.edges.filter(edge => edge.kind === 'fdb_path').length, 1);
+      assert.equal(graph.edges.length, 3, 'Vizinho sem endereço permanece somente nos dados do observador');
+
+      async function checkEvidencePaths(selector) {
+        const paths = await client.evaluate(`Array.from(document.querySelectorAll(${JSON.stringify(selector)}), node =>
+          ({kind:node.dataset.kind,dash:node.getAttribute('stroke-dasharray'),stroke:node.getAttribute('stroke'),label:node.getAttribute('aria-label')}))`);
+        const neighbors = paths.filter(item => item.kind === 'reported_neighbor'), fdb = paths.filter(item => item.kind === 'fdb_path');
+        assert.equal(neighbors.length, 2, 'Ambos os relatos devem aparecer na visualização');
+        assert.equal(fdb.length, 1, 'O caminho FDB deve aparecer separadamente');
+        assert(neighbors.every(item => item.dash === '2 4'));
+        assert.equal(fdb[0].dash, '5 5');
+        assert.notEqual(neighbors[0].stroke, fdb[0].stroke, 'Relações LLDP/CDP e FDB têm estilos distintos');
+        assert(neighbors.some(item => item.label.includes('LLDP') && item.label.includes('Gi1/0/24')));
+        assert(neighbors.some(item => item.label.includes('CDP') && item.label.includes('Gi1/0/25')));
+      }
+      assert.equal(await client.evaluate('document.getElementById("view").value'), 'tree');
+      assert.equal(await client.evaluate('document.getElementById("nextSwitch").disabled'), false, 'Observador genérico participa da navegação');
+      await click('[data-node-id="192.0.2.10"]'); await pause(450);
+      assert.equal(await client.evaluate('document.getElementById("detailTitle").textContent'), observer.nome);
+      assert.equal(await client.evaluate('document.getElementById("switchPosition").textContent'), '1 / 1');
+      assert.equal(await client.evaluate('document.querySelectorAll(".child-row").length'), 2, 'Dois protocolos não duplicam o mesmo dispositivo');
+      await checkEvidencePaths('.tree-branch');
+      await click('#evidenceTab');
+      assert.equal(await client.evaluate('document.getElementById("evidencePanel").hidden'), false);
+      assert.equal(await client.evaluate('document.querySelectorAll("#relations li").length'), 3);
+      const evidence = await client.evaluate('document.getElementById("detailBody").textContent');
+      assert(evidence.includes('SEM-IP </script><img') && evidence.includes('Gi1/0/26'), 'Relato sem IP conserva identidade e porta nos detalhes');
+      assert(evidence.includes('Sem correspondência no inventário'));
+      assert(evidence.includes('participação parcial ou não disponível'), 'VLANs incompletas devem informar a limitação');
+      assert(evidence.includes('Bridge 7 · ifIndex 124') && evidence.includes('limite de entradas'));
+      await click('#nextSwitch'); await pause(400);
+      assert.equal(await client.evaluate('document.getElementById("detailTitle").textContent'), observer.nome, 'Navegação alcança o observador genérico');
+
+      await click('#overview');
+      await client.evaluate('document.getElementById("view").value="mesh";document.getElementById("view").dispatchEvent(new Event("change"))');
+      await checkEvidencePaths('.fdb-path');
+      assert.equal(await client.evaluate('document.querySelectorAll(".device").length'), 3, 'Malha usa somente dispositivos inventariados');
+      await click('[data-node-id="192.0.2.10"]'); await click('#evidenceTab');
+      assert.equal(await client.evaluate('document.querySelectorAll("#relations li").length'), 3);
+      assert.equal(await client.evaluate('globalThis.unsafe === undefined && document.querySelectorAll("img").length === 0'), true, 'Nomes hostis permanecem texto');
+      assert.equal(await client.evaluate('JSON.parse(document.getElementById("graph-data").textContent).nodes.find(node=>node.ip==="192.0.2.10").category'), 'unknown');
+      await client.send('Emulation.setDeviceMetricsOverride', {width: 600, height: 900, deviceScaleFactor: 1, mobile: false});
+      await pause(150);
+      assert(await client.evaluate('document.documentElement.scrollWidth <= innerWidth'), 'Evidências L2 cabem na janela compacta');
+      timings.push({kind: fixture.kind, count: fixture.count, validation_ms: Math.round(performance.now() - started)});
+      continue;
+    }
     if (fixture.kind === 'example-tree') {
       assert.equal(await client.evaluate('document.getElementById("view").value'),'tree');
       assert(await client.evaluate('document.querySelector(".topbar").getBoundingClientRect().height <= 60'));
@@ -237,7 +297,7 @@ try {
   assert.deepEqual(errors, [], 'Erros JavaScript no navegador');
   assert(requests.every(url => url.startsWith('file:') || url.startsWith('data:')), 'O mapa tentou acessar a rede');
   writeFileSync(path.join(root, 'build', 'topology-smoke', 'report.json'), JSON.stringify({browser: version.product, cases: timings, errors, requests: requests.length}, null, 2));
-  console.log(`Mapa OK: ${version.product}; grupos, árvore e malha; 11 cenários até 4096 registros; exemplo com 129 equipamentos, foco animado, painel e navegação entre seis switches; busca, teclado, contexto, segurança e layout compacto; sem requisições externas da página.`);
+  console.log(`Mapa OK: ${version.product}; grupos, árvore e malha; ${timings.length} cenários até ${Math.max(...timings.map(item=>item.count))} registros; exemplo com 129 equipamentos, foco animado, painel e navegação entre seis switches; relatos LLDP/CDP distintos da FDB, observador genérico, vizinho sem IP e VLAN parcial; busca, teclado, contexto, segurança e layout compacto; sem requisições externas da página.`);
 } catch (error) {
   console.error(stderr); console.error(error); throw error;
 } finally {

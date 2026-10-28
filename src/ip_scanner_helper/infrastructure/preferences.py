@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from ip_scanner_helper.domain.preferences import Preferences
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 MAX_SETTINGS_BYTES = 512 * 1024
 
 
@@ -67,7 +67,7 @@ class JsonPreferencesStore:
             self.message = "Não foi possível ler as preferências. Usando os padrões sem alterar o arquivo."
             return Preferences()
         self._loaded_version = payload["schema_version"]
-        if self._loaded_version not in (1, 2, 3, SCHEMA_VERSION):
+        if self._loaded_version not in (1, 2, 3, 4, SCHEMA_VERSION):
             self.read_only = True
             self.message = "Este arquivo de preferências usa uma versão não suportada. Ele será preservado sem alterações."
             return Preferences()
@@ -90,7 +90,7 @@ class JsonPreferencesStore:
         if len(data.encode("utf-8")) > MAX_SETTINGS_BYTES:
             raise ValueError("Arquivo de preferências excede o limite.")
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        if self._loaded_version in (1, 2, 3) and self.path.exists():
+        if self._loaded_version in (1, 2, 3, 4) and self.path.exists():
             # Preserve the exact original before replacing an older schema.
             original = self.path.read_bytes()
             current = json.loads(original.decode("utf-8-sig"))

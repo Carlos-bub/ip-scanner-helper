@@ -9,13 +9,13 @@ Basic.TextField {
     font.family: Theme.font
     font.pixelSize: 14
     color: Theme.ink
-    placeholderTextColor: "#95a0aa"
-    selectionColor: "#d9e9e1"
+    placeholderTextColor: Theme.disabledInk
+    selectionColor: Theme.selection
     selectedTextColor: Theme.ink
     selectByMouse: true
     background: Rectangle {
         radius: 6
-        color: control.enabled ? "#ffffff" : "#f5f6f8"
+        color: control.enabled ? Theme.surface : Theme.disabled
         border.color: control.activeFocus ? Theme.accent : Theme.border
         border.width: control.activeFocus ? 2 : 1
     }

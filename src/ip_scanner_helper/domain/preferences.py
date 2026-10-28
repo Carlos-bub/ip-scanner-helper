@@ -76,8 +76,11 @@ class Preferences:
     probe_timeouts: tuple[tuple[str, float], ...] = PROBE_TIMEOUT_DEFAULTS
     credential_id: str = ""
     probe_rate_limit: int = 0
+    theme: str = "light"
 
     def __post_init__(self):
+        if not isinstance(self.theme, str) or self.theme not in ("light", "dark", "system"):
+            raise ValueError("Tema inválido. Escolha claro, escuro ou sistema.")
         validate_probe_rate(self.probe_rate_limit)
         if not valid_credential_id(self.credential_id, allow_empty=True):
             raise ValueError("Referência de credencial inválida.")
@@ -150,6 +153,7 @@ class Preferences:
             "probe_timeouts": dict(self.probe_timeouts),
             "credential_id": self.credential_id,
             "probe_rate_limit": self.probe_rate_limit,
+            "theme": self.theme,
         }
 
     @classmethod
@@ -176,7 +180,7 @@ class Preferences:
                 raise ValueError("Larguras de colunas inválidas.")
             values["column_widths"] = tuple(payload["column_widths"].items())
         for key in ("sort_key", "sort_reverse", "last_target", "interface_id", "interface_name",
-                    "mode", "workers", "target_timeout", "credential_id", "probe_rate_limit"):
+                    "mode", "workers", "target_timeout", "credential_id", "probe_rate_limit", "theme"):
             if key in payload:
                 values[key] = payload[key]
         return cls(**values)

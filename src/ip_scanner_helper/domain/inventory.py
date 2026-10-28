@@ -28,8 +28,9 @@ def category_matches(device, category):
     rules = {
         "TODOS": True,
         "SWITCH": any(word in kind for word in ("switch", "roteador", "firewall", "access point")),
+        "SERVIDOR": "servidor" in kind and "estacao" not in kind,
         "AD": "servidor" in kind,
-        "ESTACAO": "estacao" in kind,
+        "ESTACAO": "estacao" in kind and "servidor" not in kind,
         "PRINTER": "impressora" in kind,
         "VOIP": "telefonia" in kind or "voip" in kind,
         "CFTV": any(word in kind for word in ("cftv", "camera", "dvr", "nvr")),

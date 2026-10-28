@@ -5,6 +5,14 @@ from ip_scanner_helper.domain.preferences import Preferences, WindowPreferences
 
 
 class PreferencesTests(unittest.TestCase):
+    def test_appearance_roundtrip_and_unknown_themes_rejected(self):
+        for theme in ("light", "dark", "system"):
+            with self.subTest(theme=theme):
+                self.assertEqual(Preferences.from_dict(Preferences(theme=theme).to_dict()).theme, theme)
+        for theme in (None, True, 1, "cyber", [], {}):
+            with self.subTest(theme=theme), self.assertRaises(ValueError):
+                Preferences(theme=theme)
+
     def test_roundtrip_retains_hidden_widths_and_negative_monitor_position(self):
         prefs = Preferences(window=WindowPreferences(-1440, 20, 1200, 800, True),
                             column_widths=(("portas", 411.5),), workers=8, target_timeout=4.5, probe_rate_limit=25)

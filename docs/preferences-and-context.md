@@ -4,7 +4,7 @@ As preferências ficam em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Desde 
 
 ## Persistência
 
-O arquivo possui `schema_version: 4` e um objeto `preferences` com campos permitidos explicitamente. Schemas 1/2/3 são carregados com os novos campos nos valores padrão e recebem backup exato antes da migração na gravação. O campo `credential_id` referencia uma comunidade no [cofre protegido](credential-vault.md); o segredo permanece separado. Credenciais SNMP/Telnet, resultados, nomes de dispositivos e ambiente não são persistidos no JSON de preferências. O caminho é resolvido na composição; o armazenamento recebe um caminho explícito e não faz I/O no construtor. `--demo` e `--self-check` não carregam nem gravam preferências/cofre pessoais.
+O arquivo possui `schema_version: 5` e um objeto `preferences` com campos permitidos explicitamente. Schemas 1/2/3/4 são carregados com os novos campos nos valores padrão e recebem backup exato antes da migração na gravação. O campo `credential_id` referencia uma comunidade no [cofre protegido](credential-vault.md); o segredo permanece separado. Credenciais SNMP/Telnet, resultados, nomes de dispositivos e ambiente não são persistidos no JSON de preferências. O caminho é resolvido na composição; o armazenamento recebe um caminho explícito e não faz I/O no construtor. `--demo` e `--self-check` não carregam nem gravam preferências/cofre pessoais.
 
 As escritas usam arquivo temporário no mesmo diretório, `flush`, `fsync` e substituição atômica. A leitura tem limite de 512 KiB e valida tipos, limites, valores finitos e colunas conhecidas. Campos desconhecidos da versão atual são ignorados; campos reconhecidos ausentes usam padrões. Um arquivo inválido é preservado como `settings.invalid-<data>-<identificador>.json` antes de retornar aos padrões. Se não for possível preservá-lo, o aplicativo não o sobrescreve.
 
@@ -14,7 +14,7 @@ Para restaurar os padrões manualmente, feche o aplicativo e renomeie o `setting
 
 ## Interface e sessão ativa
 
-O diálogo trabalha com rascunho: Cancelar descarta a edição e Salvar valida os campos. Os controles de coleta também atualizam os valores para a próxima execução. Uma sessão já iniciada conserva seu `ScanOptions`, seus prazos e seu contexto, mesmo que o usuário salve novas preferências durante a coleta.
+A central em **Configurações** trabalha com rascunho: Cancelar descarta a edição e Salvar valida os campos. Os controles de coleta também atualizam os valores para a próxima execução. Uma sessão já iniciada conserva seu `ScanOptions`, seus prazos e seu contexto, mesmo que o usuário salve novas preferências durante a coleta.
 
 O adaptador lembrado é procurado por identificador; quando não existe identificador, usa-se o nome. Se o adaptador não estiver disponível, a seleção fica vazia. A descoberta não substitui a faixa manual/restaurada por uma rede arbitrária. Selecionar explicitamente uma interface continua sugerindo sua rede. A posição da janela é ajustada à área útil dos monitores presentes; coordenadas negativas válidas são mantidas. Maximizar conserva o último retângulo normal.
 
@@ -24,8 +24,8 @@ Cada coleta recebe um `NetworkContext` imutável. Os metadados incluem expressã
 
 Sem ambiente explícito, `comparison_scope` é exclusivo da sessão. A mesma faixa ou o mesmo adaptador não estabelece que duas coletas ocorreram na mesma rede física. Para declarar o ambiente, informe um nome exclusivo em Opções, como `Matriz — escritório`. O nome é normalizado em Unicode NFC e convertido em identificador estável; maiúsculas/minúsculas e espaços internos são significativos. Reutilize exatamente o nome apenas quando quiser declarar o mesmo ambiente. O campo começa vazio a cada abertura.
 
-Quando o ambiente foi informado, o escopo combina seu identificador com o hash dos alvos. Dois ambientes com o mesmo CIDR permanecem distintos. Esses metadados preparam o histórico futuro; ainda não há banco SQLite ou comparação persistente. `ScanService.context` e o evento `finished` devolvem cópias defensivas. Alterar a interface após a coleta não reclassifica os resultados ou o gateway usado no mapa. CSV e JSON continuam no formato existente de lista de dispositivos, sem introduzir metadados de sessão no nível de cada equipamento.
+Quando o ambiente foi informado, o escopo combina seu identificador com o hash dos alvos. Dois ambientes com o mesmo CIDR permanecem distintos. Esses metadados isolam as sessões no [histórico SQLite](history.md) e permitem comparar coletas compatíveis. `ScanService.context` e o evento `finished` devolvem cópias defensivas. Alterar a interface após a coleta não reclassifica os resultados ou o gateway usado no mapa. CSV e JSON continuam no formato existente de lista de dispositivos, sem introduzir metadados de sessão no nível de cada equipamento.
 
 ## Próximos incrementos
 
-Perfis TCP e tempos por sonda estão entregues na 2.0.6, e o cofre SNMP protegido, na 2.0.7. A 2.0.8 entrega o [controle de sondas iniciadas por segundo](probe-rate-limit.md), com taxa padrão desativada e captura por sessão. Depois, seguem agrupamento lógico do mapa e histórico. Tema escuro, agendamento e vinculação automática de ambientes continuam pendentes.
+Perfis TCP e tempos por sonda estão entregues na 2.0.6, e o cofre SNMP protegido, na 2.0.7. A 2.0.8 entrega o [controle de sondas iniciadas por segundo](probe-rate-limit.md), com taxa padrão desativada e captura por sessão. Mapa e histórico já estão disponíveis. A 2.1.0 entrega a [central com temas e navegação](navigation-and-appearance.md), incluindo tema claro/escuro/sistema no campo `theme`. Navegar ou fechar com alterações solicita salvar/descartar. Agendamento e vinculação automática de ambientes continuam pendentes.

@@ -12,6 +12,10 @@ htmlcov/
 *.log
 *.log.*
 *.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.db.lock
 *.sqlite*
 *.vault
 *.vault.lock

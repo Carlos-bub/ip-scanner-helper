@@ -1,6 +1,6 @@
 # IP Scanner Helper
 
-Aplicação desktop em Python e PySide6 / Qt Quick para descobrir equipamentos IPv4, reunir um inventário com evidências de identificação e consultar tabelas MAC de switches. A versão 2.0 traz uma interface declarativa em QML, com a tabela como área principal.
+Aplicação desktop em Python e PySide6 / Qt Quick para descobrir equipamentos IPv4, reunir um inventário com evidências de identificação e consultar tabelas MAC, vizinhos LLDP/CDP e VLANs de switches. A versão 2.1 organiza a interface QML em Inventário, Topologia, IPAM e histórico, e Configurações, com a tabela como tela inicial.
 
 O projeto distingue presença confirmada, fabricante estimado por OUI, categoria inferida e caminho observado em um switch. Informações que não puderam ser medidas permanecem explícitas no inventário.
 
@@ -19,6 +19,10 @@ Um [exemplo de mapa HTML](docs/demo-topology.html) está incluído: baixe o arqu
 ## Funcionalidades
 
 - Tabela de IPs como área principal, com controles compactos e indicadores discretos.
+- Quatro abas principais, preservando seleção, coleta ativa e a largura da tabela.
+- Central de configurações com seções e temas claro, escuro e automático; [navegação e aparência](docs/navigation-and-appearance.md).
+- Topologia nativa com grupos recolhíveis, zoom e arraste; mapa HTML detalhado também disponível.
+- Mapa de endereços no IPAM, com estados observados, parciais, reservados e sem resposta.
 - Detalhes fechados por padrão; abertura pelo botão, duplo clique ou Enter, por escolha do usuário.
 - Controles desenhados em QML, paleta neutra, acento verde discreto, tipografia consistente e ícone próprio.
 - Tabela virtualizada: renderiza as células visíveis, com rolagem horizontal e vertical.
@@ -39,7 +43,10 @@ Um [exemplo de mapa HTML](docs/demo-topology.html) está incluído: baixe o arqu
 - Identificação por SNMP v1/v2c, DNS reverso, NetBIOS, certificados TLS/RDP, títulos Web, PJL, banners SSH/FTP, SSDP, SIP e ONVIF, conforme o modo e os serviços encontrados.
 - Confiança qualitativa e evidência da categoria nas propriedades e exportações.
 - Mapeamento de interfaces e tabelas MAC via IF-MIB, Bridge-MIB e fallback Q-BRIDGE-MIB; importação de texto e coleta Telnet legada.
+- Consulta L2 sob demanda: LLDP/CDP, portas locais/remotas, correlação direcional e VLANs por porta com PVID/tagged/untagged; [uso e limites](docs/l2-discovery.md).
+- GETBULK adaptativo com fallback GETNEXT, prazos e cancelamento nas consultas SNMP de switches.
 - Coleta de switches sinalizada como parcial quando atinge um limite, encontra erro ou perde a continuidade dos OIDs.
+- Histórico SQLite com reabertura offline, comparação de coletas compatíveis, reservas por ambiente e backup/restauração; [guia de uso](docs/history.md).
 - Exportação CSV com neutralização de fórmulas e JSON preservando metadados.
 - Mapa HTML offline aberto no navegador padrão, com busca, pan, zoom e evidências dos caminhos aprendidos.
 - Logs rotativos, sem registrar a comunidade SNMP ou a senha Telnet.
@@ -65,11 +72,11 @@ O atalho de desenvolvimento `scripts\executar.cmd` usa o mesmo ambiente virtual 
 
 Na aplicação, selecione uma interface ou informe a faixa manualmente, escolha o modo e inicie a varredura. Comunidade SNMP, consultas simultâneas e limite de tempo por IP ficam em **Opções**. O padrão é 20 segundos por alvo; ao atingir o limite, os dados confirmados permanecem na tabela e os endereços afetados aparecem em **N incompletas** no rodapé. Em janelas compactas, a seleção de interface também fica nessa área. A interface selecionada sugere a faixa e identifica o gateway local; as rotas do Windows determinam a interface efetivamente utilizada pelas sondas.
 
-Em **Preferências**, defina modo, concorrência, limite por IP e sondas por segundo para a próxima varredura. A janela, colunas, larguras, ordenação e última faixa são lembradas automaticamente em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Credenciais e resultados ficam fora desse arquivo. Demonstração e autoverificação não leem nem gravam as preferências pessoais. Veja a [tela de preferências](docs/desktop-preferences.png) e o [contrato de persistência e contexto](docs/preferences-and-context.md).
+Em **Configurações → Varredura**, defina modo, concorrência, limite por IP e sondas por segundo para a próxima varredura. A janela, colunas, larguras, ordenação e última faixa são lembradas automaticamente em `%LOCALAPPDATA%\IPScannerHelper\settings.json`. Credenciais e resultados ficam fora desse arquivo. Demonstração e autoverificação não leem nem gravam as preferências pessoais. Veja a [tela de preferências](docs/desktop-preferences.png) e o [contrato de persistência e contexto](docs/preferences-and-context.md).
 
-Em **Coleta → Sondas por segundo**, use 0 para desativar ou um valor de 1 a 1.000 para espaçar o início dos coletores de todos os IPs da sessão. A espera respeita o prazo por IP e pode resultar em coleta incompleta. Uma consulta TCP pode testar várias portas; o valor não representa pacotes por segundo. Veja o [alcance do controle](docs/probe-rate-limit.md).
+Em **Configurações → Varredura → Sondas por segundo**, use 0 para desativar ou um valor de 1 a 1.000 para espaçar o início dos coletores de todos os IPs da sessão. A espera respeita o prazo por IP e pode resultar em coleta incompleta. Uma consulta TCP pode testar várias portas; o valor não representa pacotes por segundo. Veja o [alcance do controle](docs/probe-rate-limit.md).
 
-O campo **Ambiente**, em Opções, permite dar um nome exclusivo à rede desta coleta. Ele começa vazio ao abrir o aplicativo. Sem ambiente informado, cada sessão fica isolada; o mesmo CIDR não estabelece a identidade de uma rede. Essa base prepara o histórico futuro, que ainda não está implementado.
+O campo **Ambiente**, em Opções, permite dar um nome exclusivo à rede desta coleta. Ele começa vazio ao abrir o aplicativo. Sem ambiente informado, cada sessão fica isolada; o mesmo CIDR não estabelece a identidade de uma rede. O histórico usa esse contexto para separar e comparar coletas compatíveis.
 
 As abas **Perfis TCP** e **Tempos** permitem escolher o escopo de portas e os limites das sondas. Duplique um perfil incluído ou crie um personalizado, com uma porta por linha. As consultas UDP específicas, como SNMP, continuam separadas. A migração das configurações 2.0.5 cria um backup antes de gravar o novo schema. Veja [perfis, tempos e retorno de versão](docs/port-profiles.md).
 
@@ -89,7 +96,11 @@ O botão Parar solicita o cancelamento cooperativo. O DNS nativo aceita solicita
 .venv\Scripts\python.exe -m unittest discover -s tests -v
 .venv\Scripts\python.exe scripts/smoke_ui.py
 .venv\Scripts\python.exe scripts/smoke_preferences.py
+.venv\Scripts\python.exe scripts/smoke_navigation.py
 .venv\Scripts\python.exe scripts/smoke_vault.py
+.venv\Scripts\python.exe scripts/smoke_l2.py
+.venv\Scripts\python.exe scripts/smoke_history.py
+.venv\Scripts\python.exe scripts/smoke_topology.py
 ```
 
 Os testes unitários e de regressão usam respostas simuladas. Cobrem BER/SNMP, comprimentos longos, validação de respostas, cancelamento e isolamento de sessões, exceções de tarefas, identificação por MAC, presença atual, RTT, certificados, limites de coleta, exportações e injeção de HTML.
@@ -100,7 +111,7 @@ O smoke test renderiza a interface QML real e testa cliques, teclado, detalhes, 
 
 ## Gerar o executável
 
-A [validação 2.0.9](docs/validation-2.0.9.md) registra mapa, navegação e diagramas. A [validação 2.0.8](docs/validation-2.0.8.md) registra taxa, cancelamento e migração. A [validação 2.0.7](docs/validation-2.0.7.md) registra cofre, DPAPI e privacidade. A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migração; a [validação 2.0.5](docs/validation-2.0.5.md), a base de persistência e contexto de rede.
+A [validação 2.1.0](docs/validation-2.1.0.md) registra navegação, temas e central de configurações. A [validação 2.0.12](docs/validation-2.0.12.md) registra as correções de classificação. A [validação 2.0.11](docs/validation-2.0.11.md) registra histórico, comparação e restauração. A [validação 2.0.10](docs/validation-2.0.10.md) registra GETBULK, LLDP/CDP, VLANs e seus limites. A [validação 2.0.9](docs/validation-2.0.9.md) registra mapa, navegação e diagramas. A [validação 2.0.8](docs/validation-2.0.8.md) registra taxa, cancelamento e migração. A [validação 2.0.7](docs/validation-2.0.7.md) registra cofre, DPAPI e privacidade. A [validação 2.0.6](docs/validation-2.0.6.md) registra perfis, tempos e migração; a [validação 2.0.5](docs/validation-2.0.5.md), a base de persistência e contexto de rede.
 
 ```powershell
 .venv\Scripts\python.exe -m pip install -e ".[build]"
@@ -108,11 +119,11 @@ A [validação 2.0.9](docs/validation-2.0.9.md) registra mapa, navegação e dia
 .venv\Scripts\python.exe scripts/package_release.py
 ```
 
-Saída: `dist/portfolio/2.0.9/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
+Saída: `dist/portfolio/2.1.0/IP_Scanner_Helper/IP_Scanner_Helper.exe`. Distribua a pasta inteira, incluindo `_internal`. O usuário final não precisa instalar Python ou Qt. A configuração em `packaging/windows/` inclui QML, módulos Qt usados, ícone, template HTML e dados fictícios. O build executa a autoverificação e usa a versão de `pyproject.toml` nos metadados e na pasta de saída.
 
 ```powershell
-dist\portfolio\2.0.9\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
-dist\portfolio\2.0.9\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
+dist\portfolio\2.1.0\IP_Scanner_Helper\IP_Scanner_Helper.exe --demo
+dist\portfolio\2.1.0\IP_Scanner_Helper\IP_Scanner_Helper.exe --self-check
 ```
 
 Para gerar os artefatos públicos da demonstração:
@@ -144,7 +155,7 @@ docs/                 # Arquitetura, decisões, validações e exemplos
 
 O domínio concentra regras sem acesso à rede ou à interface. A aplicação coordena a varredura por contratos; a infraestrutura implementa os coletores. O controlador recebe os serviços explicitamente e atualiza a tabela pelo loop Qt. `bootstrap.py` conecta essas partes, sem iniciar sondagens na construção dos objetos.
 
-As regras de dependência são verificadas pela suíte. Não há ajustes de `sys.path`; o aplicativo funciona como pacote instalado e como executável Windows. O código da antiga interface Tkinter foi removido.
+As regras de dependência são verificadas pela suíte. O aplicativo usa imports do pacote instalado, sem ajustar `sys.path` em runtime, e funciona como executável Windows. O código da antiga interface Tkinter foi removido.
 
 Consulte a [arquitetura](docs/architecture.md), a [decisão sobre a estrutura](docs/decisions/0001-modular-desktop-architecture.md), o [guia de contribuição](CONTRIBUTING.md) e os [avisos de terceiros](THIRD_PARTY_NOTICES.md).
 
@@ -152,15 +163,15 @@ Consulte a [arquitetura](docs/architecture.md), a [decisão sobre a estrutura](d
 
 - **Latência:** RTT informado pelo ping. Um limite como `< 1 ms` é preservado como limite, sem inventar um valor numérico. Quando não há medição, o campo é `Não medida`.
 - **Fabricante:** consulta exata à base OUI curada herdada do projeto. Ela não é uma cópia completa ou auditada do registro IEEE. Prefixos conflitantes foram removidos. MAC local ou privado não identifica fabricante nem categoria.
-- **Categoria:** resultado de regras explícitas. RDP/SMB não comprovam Active Directory; DNS reverso não comprova que o DNS pertence a um AD. Confiança alta, média ou baixa descreve a evidência da regra, não uma probabilidade estatística.
-- **Mapa:** linhas tracejadas representam agrupamento lógico. Uma linha contínua representa um MAC aprendido na porta consultada, podendo existir switches, APs ou outras pontes intermediárias. A aplicação não comprova conexão física direta.
+- **Categoria:** assinaturas explícitas prevalecem sobre convenções de hostname; conflitos entre evidências do mesmo nível deixam a categoria inconclusiva. Fabricante, distribuição Linux, registro PTR e portas abertas não definem função sozinhos. RDP/SMB não comprovam Active Directory. Confiança alta, média ou baixa descreve a evidência da regra, não uma probabilidade estatística. Veja os [critérios e exemplos](docs/classification.md).
+- **Mapa:** grupos são lógicos. Caminhos FDB aparecem em verde tracejado; relatos LLDP/CDP, em azul pontilhado. São evidências distintas, com origem e instante, sem comprovar cabeamento físico direto.
 - **Ausência de resposta:** pode indicar filtro, timeout, protocolo desativado, credenciais incompatíveis ou dispositivo indisponível. Não comprova que uma porta UDP está fechada.
 
 ## Limites e próximos passos
 
 O foco é inventário IPv4 em Windows. ARP identifica vizinhos da sub-rede local; equipamentos de outras redes podem permanecer sem MAC. Os certificados TLS são coletados sem validação de confiança para identificação de equipamentos, portanto seus nomes são evidências declaradas pelo serviço. O DNS reverso usa a API nativa com prazo e cancelamento; `nslookup` permanece como fallback quando a API não está disponível, reconhecendo os rótulos em português e inglês.
 
-SNMP v3, GETBULK, IPv6, vizinhança LLDP/CDP, histórico persistente, comparação de inventários, regras manuais e descoberta completa de VLANs ainda não estão implementados. O fallback Q-BRIDGE não garante cobertura de todas as VLANs. Telnet existe para equipamentos legados e transmite credenciais sem criptografia; os comandos de coleta podem exigir adaptação ao fabricante.
+GETBULK, vizinhança LLDP/CDP, evidências de VLAN, histórico persistente e comparação de inventários estão disponíveis, com os limites descritos nos guias. Permanecem pendentes SNMP v3, inventário IPv6, regras personalizadas de reconhecimento e descoberta completa dos modos de porta/VLAN de todos os fabricantes. O fallback Q-BRIDGE não garante cobertura de todas as VLANs. Telnet existe para equipamentos legados e transmite credenciais sem criptografia; os comandos de coleta podem exigir adaptação ao fabricante.
 
 Use somente em redes nas quais você tem autorização. A validação automatizada verifica o comportamento do software com fixtures; a interoperabilidade precisa ser verificada em equipamentos reais.
 

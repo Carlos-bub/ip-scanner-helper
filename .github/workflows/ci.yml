@@ -29,7 +29,13 @@ jobs:
         run: python scripts/smoke_ui.py
       - name: Preferences smoke test (temporary settings)
         run: python scripts/smoke_preferences.py
+      - name: Navigation and appearance smoke test (temporary settings)
+        run: python scripts/smoke_navigation.py
       - name: Credential vault smoke test (synthetic DPAPI data)
         run: python scripts/smoke_vault.py
       - name: Offline topology smoke test (local headless browser)
         run: python scripts/smoke_topology.py
+      - name: L2 dialog smoke test (simulated SNMP data)
+        run: python scripts/smoke_l2.py
+      - name: History smoke test (temporary SQLite data)
+        run: python scripts/smoke_history.py

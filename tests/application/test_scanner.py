@@ -92,7 +92,65 @@ class ScannerTests(unittest.TestCase):
     def test_rdp_does_not_prove_active_directory(self):
         kind, confidence, _ = classify_device(None, {3389, 445})
         self.assertNotIn("AD", kind)
+        self.assertEqual(kind, "Dispositivo não identificado")
         self.assertEqual(confidence, "Baixa")
+
+    def test_server_and_workstation_categories_are_separated_by_evidence(self):
+        self.assertEqual(classify_device("Windows Server 2022 Standard", {445})[:2], ("Servidor", "Alta"))
+        self.assertEqual(classify_device("Software: Windows Version 6.3 (Build 20348 Multiprocessor Free)", {445})[:2], ("Servidor", "Alta"))
+        self.assertEqual(classify_device("Windows 11 Pro Workstation", {445, 80})[:2], ("Estação", "Alta"))
+        self.assertEqual(classify_device("Software: Windows Version 6.3 (Build 22631 Multiprocessor Free)", {445})[:2], ("Estação", "Alta"))
+        unknown = ("Dispositivo não identificado", "Baixa")
+        self.assertEqual(classify_device(None, {22, 80}, ssh="SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6")[:2], unknown)
+        self.assertEqual(classify_device(None, {8006, 443}, web="pve01 - Proxmox Virtual Environment")[:2], ("Servidor", "Alta"))
+        self.assertEqual(classify_device(None, {445, 1433})[:2], unknown)
+        self.assertEqual(classify_device(None, {445, 3389, 443})[:2], unknown)
+        self.assertEqual(classify_device(None, {53, 80})[:2], unknown)
+        self.assertEqual(classify_device(None, {445})[:2], unknown)
+        self.assertEqual(classify_device(None, set(), netbios="FIN-PC01")[:2], ("Estação", "Média"))
+        self.assertEqual(classify_device(None, set(), name="MATRIZ-SRV01")[:2], ("Servidor", "Média"))
+        self.assertEqual(classify_device(None, set(), vendor="Dell Inc.")[:2], unknown)
+        self.assertEqual(classify_device(None, {443}, vendor="Dell Inc.")[:2], unknown)
+        self.assertEqual(classify_device(None, set(), vendor="VMware ESXi")[:2], unknown)
+        self.assertEqual(classify_device(None, set(), vendor="Hikvision")[:2], unknown)
+        self.assertEqual(classify_device(None, set(), dns="colab-01.empresa.local")[:2], unknown)
+        self.assertEqual(classify_device(None, set(), dns="20102-mecanica4.rdcblda.com", vendor="TP-Link")[:2], unknown)
+        self.assertEqual(classify_device(None, set(), vendor="TP-Link")[:2], unknown)
+        self.assertEqual(classify_device(None, {80}, vendor="TP-Link")[:2], unknown)
+
+    def test_ptr_does_not_suppress_netbios_evidence(self):
+        self.mocks["scan_ports"].return_value = ["SMB(445)"]
+        self.mocks["query_dns_ptr"].return_value = "maquina-01.example"
+        self.mocks["query_netbios"].return_value = "SRV-ARQUIVOS"
+        device = scan_device("192.0.2.8", self.options, Event(), {})
+        self.mocks["query_netbios"].assert_called_once()
+        self.assertEqual(device["nome"], "maquina-01.example")
+        self.assertEqual(device["tipo"], "Servidor")
+        self.assertIn("NetBIOS", device["evidencia_categoria"])
+
+    def test_web_display_title_is_not_used_as_hostname(self):
+        self.mocks["scan_ports"].return_value = ["HTTP(80)"]
+        with patch.object(NetworkResolver, "query_http_title", return_value=("SRV-ADMIN", 80)), \
+             patch.object(NetworkResolver, "query_onvif_ws_discovery", return_value=None), \
+             patch.object(NetworkResolver, "query_sip_voip", return_value=None):
+            device = scan_device("192.0.2.8", ScanOptions(), Event(), {})
+        self.assertEqual(device["nome"], "SRV-ADMIN")
+        self.assertEqual(device["origem"], "Título Web")
+        self.assertEqual(device["tipo"], "Dispositivo não identificado")
+
+    def test_snmp_only_camera_is_classified_without_hostname_or_ports(self):
+        self.mocks["query_snmp"].return_value = ("dev-01", "Hikvision Network Camera", "SNMP v2c")
+        device = scan_device("192.0.2.8", self.options, Event(), {})
+        self.assertEqual(device["tipo"], "CFTV")
+        self.assertEqual(device["confianca"], "Alta")
+
+    def test_conflicting_hostname_sources_are_preserved(self):
+        self.mocks["query_snmp"].return_value = ("PC-LAB", None, "SNMP v2c")
+        self.mocks["query_netbios"].return_value = "SRV-LAB"
+        device = scan_device("192.0.2.8", self.options, Event(), {})
+        self.assertEqual(device["tipo"], "Dispositivo não identificado")
+        self.assertIn("contraditórias", device["evidencia_categoria"])
+        self.assertEqual(device["netbios_name"], "SRV-LAB")
 
     def test_cancellation_prevents_network_work(self):
         event = Event()

@@ -15,6 +15,9 @@ import logging
 
 from ip_scanner_helper.infrastructure.network.snmp import (encode_oid, decode_oid, build_request, parse_response, query, oid_parts, SnmpError)
 
+from ip_scanner_helper.application.timing import ProbeContext
+from ip_scanner_helper.infrastructure.network.snmp_walk import walk_tree, WalkResult
+
 logger = logging.getLogger(__name__)
 from ip_scanner_helper.domain.oui_database import identificar_fabricante_e_tipo
 
@@ -37,44 +40,12 @@ def parse_snmp_response(data):
         return None, None, None
 
 
-class WalkResult(dict):
-    """Mapping with explicit collection completeness, including empty results."""
-    partial = False
-    reason = ""
-
-
-def snmp_walk_tree(ip, community, root_oid, timeout=0.8, max_reps=10000, budget=15):
-    results = WalkResult()
-    root = oid_parts(root_oid)
-    current = root_oid
-    deadline = time.monotonic() + budget
-    for _ in range(max_reps):
-        if time.monotonic() >= deadline:
-            results.partial, results.reason = True, "tempo máximo da coleta"
-            break
-        try:
-            values = query(ip, current, community, timeout=timeout, next_oid=True)
-            if not values:
-                raise SnmpError("Resposta sem variáveis")
-            next_oid, tag, value = values[0]
-            if tag in (0x80, 0x81, 0x82):
-                break
-            parts = oid_parts(next_oid)
-            if parts[:len(root)] != root:
-                break
-            if parts <= oid_parts(current):
-                raise SnmpError("Agente retornou OID repetido ou fora de ordem")
-            results[next_oid] = value
-            current = next_oid
-        except (OSError, SnmpError) as exc:
-            results.partial, results.reason = True, "Falha de comunicação ou resposta SNMP inválida"
-            logger.debug("Coleta SNMP parcial: %s / %s (%s)", ip, root_oid, type(exc).__name__)
-            break
-    else:
-        results.partial, results.reason = True, "limite de entradas"
-    if results.partial:
-        logger.warning("Coleta parcial em %s (%s): %s", ip, root_oid, results.reason)
-    return results
+def snmp_walk_tree(ip, community, root_oid, timeout=0.8, max_reps=10000, budget=15, *, context=None, version=1):
+    result = walk_tree(ip, community, root_oid, timeout, max_reps, budget,
+                       context=context, version=version, query_fn=query)
+    if result.partial:
+        logger.debug("Coleta SNMP parcial em %s (%s): %s", ip, root_oid, result.reason)
+    return result
 
 
 # ==============================================================================
@@ -410,7 +381,7 @@ class SwitchPortMapper:
     """Motor Unificado de Descoberta de Portas e Hosts de Switches."""
 
     @staticmethod
-    def mapear_switch(ip_switch, community="public", lista_dispositivos_rede=None):
+    def mapear_switch(ip_switch, community="public", lista_dispositivos_rede=None, *, context=None):
         """
         Consulta o Switch via SNMP Bridge-MIB.
         Usa exclusivamente a comunidade informada pelo usuário.
@@ -423,12 +394,11 @@ class SwitchPortMapper:
                     mapa_hosts[mac] = d
 
         comm_ativa = community
-        if not testar_snmp_comunidade(ip_switch, comm_ativa, timeout=0.5):
-            return []
+        context = context or ProbeContext.standalone(30)
         walks = []
 
         def collect(root, timeout=0.5, max_reps=10000):
-            result = snmp_walk_tree(ip_switch, comm_ativa, root, timeout, max_reps)
+            result = snmp_walk_tree(ip_switch, comm_ativa, root, timeout, max_reps, budget=5, context=context)
             walks.append(result)
             return result
 
@@ -470,44 +440,39 @@ class SwitchPortMapper:
         # 4. Tabela de Enderecos MAC Aprendidos (Bridge-MIB: 1.3.6.1.2.1.17.4.3.1.2 - dot1dTpFdbPort)
         fdb_entries = collect("1.3.6.1.2.1.17.4.3.1.2", timeout=0.8, max_reps=10000)
 
-        # Mapeia Porta -> Lista de MACs
+        # Bridge ports and ifIndex are distinct namespaces. Missing mappings
+        # remain explicit and cannot collide with an interface with the same number.
         porta_para_macs = {}
-        for oid, b_port in fdb_entries.items():
-            try:
-                partes_oid = oid.split('.')
-                if len(partes_oid) >= 6:
-                    mac_octets = partes_oid[-6:]
-                    mac_str = ":".join(f"{int(x):02X}" for x in mac_octets)
 
-                    num_porta = bridge_to_if.get(b_port, b_port)
-                    if num_porta not in porta_para_macs:
-                        porta_para_macs[num_porta] = []
-                    porta_para_macs[num_porta].append(mac_str)
-            except Exception:
-                pass
-
-        # Se nenhum MAC foi retornado via Bridge-MIB tradicional, tenta Q-BRIDGE-MIB (1.3.6.1.2.1.17.7.1.2.2.1.2: dot1qTpFdbPort)
-        if not porta_para_macs:
-            qfdb_entries = collect("1.3.6.1.2.1.17.7.1.2.2.1.2", timeout=0.8, max_reps=10000)
-            for oid, b_port in qfdb_entries.items():
+        def add_fdb(entries, root, suffix_size):
+            for oid, bridge_port in entries.items():
+                if type(bridge_port) is not int or not 1 <= bridge_port <= 65535:
+                    continue  # port zero means the learned port is not known.
+                if not oid.startswith(root + "."):
+                    continue
                 try:
-                    partes_oid = oid.split('.')
-                    if len(partes_oid) >= 6:
-                        mac_octets = partes_oid[-6:]
-                        mac_str = ":".join(f"{int(x):02X}" for x in mac_octets)
-                        num_porta = bridge_to_if.get(b_port, b_port)
-                        if num_porta not in porta_para_macs:
-                            porta_para_macs[num_porta] = []
-                        porta_para_macs[num_porta].append(mac_str)
-                except Exception:
-                    pass
+                    suffix = tuple(int(item) for item in oid[len(root) + 1:].split("."))
+                except ValueError:
+                    continue
+                if len(suffix) != suffix_size or any(not 0 <= item <= 255 for item in suffix[-6:]):
+                    continue
+                mac = ":".join(f"{item:02X}" for item in suffix[-6:])
+                interface = bridge_to_if.get(bridge_port)
+                key = interface if type(interface) is int and interface > 0 else -bridge_port
+                porta_para_macs.setdefault(key, []).append(mac)
+
+        add_fdb(fdb_entries, "1.3.6.1.2.1.17.4.3.1.2", 6)
+        if not porta_para_macs:
+            root = "1.3.6.1.2.1.17.7.1.2.2.1.2"
+            qfdb_entries = collect(root, timeout=0.8, max_reps=10000)
+            add_fdb(qfdb_entries, root, 7)  # FDB ID is not necessarily a VLAN ID.
 
         # Monta a estrutura final organizada
         resultado_portas = []
         todas_portas = sorted(list(set(list(port_names.keys()) + list(porta_para_macs.keys()))))
 
         for p_idx in todas_portas:
-            nome_p = port_names.get(p_idx, f"Porta {p_idx}")
+            nome_p = port_names.get(p_idx, f"ifIndex {p_idx}") if p_idx > 0 else f"Bridge porta {-p_idx} (ifIndex não mapeado)"
             status_p = port_status.get(p_idx, "Status não consultado")
             macs_conectados = sorted(set(porta_para_macs.get(p_idx, [])))
 
@@ -532,7 +497,8 @@ class SwitchPortMapper:
             eh_uplink = len(macs_conectados) >= 3
 
             resultado_portas.append({
-                "numero": p_idx,
+                "numero": p_idx if p_idx > 0 else -p_idx,
+                "if_index": p_idx if p_idx > 0 else None,
                 "nome": nome_p,
                 "status": status_p,
                 "qtd_macs": len(macs_conectados),

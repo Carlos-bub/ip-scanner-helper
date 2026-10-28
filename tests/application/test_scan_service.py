@@ -127,7 +127,8 @@ class ServiceTests(unittest.TestCase):
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.ping_measurement", return_value=(False, None)), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.scan_ports", return_value=[]), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_snmp", return_value=(None, None, None)), \
-             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=dns):
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=dns), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_netbios", return_value=None):
             service = create_scan_service()
             service.start(["192.0.2.1"], ScanOptions(workers=1, mode="Rápido", probe_metrics=True))
             try:
@@ -157,7 +158,8 @@ class ServiceTests(unittest.TestCase):
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.ping_measurement", return_value=(True, 1)), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.scan_ports", return_value=[]), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_snmp", return_value=(None, None, None)), \
-             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=dns):
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=dns), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_netbios", return_value=None):
             service = create_scan_service()
             service.start(["192.0.2.1"], ScanOptions(workers=1, mode="Rápido", probe_metrics=True))
             try:

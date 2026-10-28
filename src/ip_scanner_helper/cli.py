@@ -4,6 +4,7 @@ import argparse
 
 from ip_scanner_helper.infrastructure.logging_config import configure_logging
 from ip_scanner_helper.bootstrap import create_desktop_services, create_scan_service, create_preferences_store, create_credential_vault
+from ip_scanner_helper.bootstrap import create_history_service
 
 
 def main(argv=None):
@@ -15,9 +16,15 @@ def main(argv=None):
     args = parser.parse_args(argv)
     configure_logging(args.log_dir)
     from ip_scanner_helper.presentation.qt_app import run
-    return run(args, service=create_scan_service(), desktop=create_desktop_services(),
-               preferences_store=None if args.demo or args.self_check else create_preferences_store(),
-               credential_vault=None if args.demo or args.self_check else create_credential_vault())
+    history = None if args.demo or args.self_check else create_history_service()
+    try:
+        return run(args, service=create_scan_service(), desktop=create_desktop_services(),
+                   preferences_store=None if args.demo or args.self_check else create_preferences_store(),
+                   credential_vault=None if args.demo or args.self_check else create_credential_vault(),
+                   history_service=history)
+    finally:
+        if history is not None:
+            history.close()
 
 
 if __name__ == "__main__":

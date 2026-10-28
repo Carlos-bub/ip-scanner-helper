@@ -96,13 +96,14 @@ def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolve
             return
         partial_mac = mac or arp_cache.get(ip)
         vendor, _ = identificar_fabricante_e_tipo(partial_mac)
+        early_kind, early_conf, _ = classify_device(None, port_numbers, vendor=vendor)
         on_discovery({"ip": ip, "nome": "Dispositivo ativo", "fabricante": vendor,
-                      "tipo": "Dispositivo não identificado", "latencia": (
+                      "tipo": early_kind, "latencia": (
                           f"{latency:g} ms" if isinstance(latency, (float, int)) else latency or "Coletando…"),
                       "latencia_ms": latency if isinstance(latency, (float, int)) else None,
                       "mac": partial_mac or "Desconhecido", "origem_mac": (
                           "ARP atual" if mac else "Cache ARP; endereço não reconfirmado" if partial_mac else "Não disponível"),
-                      "origem": "Detecção de presença", "confianca": "Baixa",
+                      "origem": "Detecção de presença", "confianca": early_conf,
                       "evidencia_categoria": "Identificação em andamento", "evidencias": list(evidence),
                       "portas": "Coleta em andamento", "status": "Identificação em andamento",
                       "coleta_completa": False, "visto_em": datetime.now(timezone.utc).isoformat()})
@@ -134,7 +135,8 @@ def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolve
                 raise ScanIncomplete("Presença não confirmada; coleta limitada pelo tempo disponível", incomplete)
             return None
         dns = probe("dns_ptr", resolver.query_dns_ptr, ip)
-        netbios = probe("netbios", resolver.query_netbios, ip) if not dns else None
+        # PTR and NetBIOS are independent evidence; the per-target budget applies.
+        netbios = probe("netbios", resolver.query_netbios, ip)
         if options.mode == "Completo":
             if 9100 in port_numbers:
                 pjl = probe("pjl", resolver.query_pjl_printer_model, ip)
@@ -167,7 +169,6 @@ def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolve
         mac = arp_cache[ip]
         mac_source = "Cache ARP; endereço não reconfirmado"
     vendor, _ = identificar_fabricante_e_tipo(mac)
-    kind, confidence, reason = classify_device(snmp_descr, port_numbers, pjl, onvif, sip)
     candidates = [(snmp_name, snmp_source), (dns, "DNS reverso (PTR)"),
                   (netbios, "NetBIOS"), (rdp, "Certificado RDP"), (web, "Título Web"),
                   (pjl, "Modelo PJL"), (onvif, "ONVIF"), (sip, "SIP"),
@@ -175,6 +176,13 @@ def _scan_device(ip, options, cancelled, arp_cache, probe, on_discovery, resolve
                   (ssh, "Banner SSH"), (ftp, "Banner FTP")]
     name, source = next(((value, origin) for value, origin in candidates if value),
                         ("Dispositivo ativo", "Detecção de presença"))
+    kind, confidence, reason = classify_device(
+        snmp_descr, port_numbers, pjl, onvif, sip,
+        ssh=ssh, web=web, ftp=ftp, ssdp=ssdp, netbios=netbios, dns=dns,
+        # A display name can be a Web title/model/banner, not a hostname.
+        name=snmp_name,
+        vendor=vendor,
+    )
     if cancelled.is_set():
         raise ScanCancelled()
     return {

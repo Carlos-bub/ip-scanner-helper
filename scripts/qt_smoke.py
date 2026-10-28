@@ -149,7 +149,8 @@ def main(capture=False):
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.ping_measurement", return_value=(True, 1)), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.scan_ports", return_value=[]), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_snmp", return_value=(None, None, None)), \
-             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=slow_dns):
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=slow_dns), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_netbios", return_value=None):
             controller.setMode("Rápido")
             controller.startScan("public", 3)
             try:
@@ -191,7 +192,8 @@ def main(capture=False):
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.ping_measurement", return_value=(False, None)), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.scan_ports", return_value=[]), \
              patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_snmp", return_value=(None, None, None)), \
-             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=deadline_dns):
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_dns_ptr", side_effect=deadline_dns), \
+             patch("ip_scanner_helper.infrastructure.network.resolver.NetworkResolver.query_netbios", return_value=None):
             controller.startScan("public", 3, .03)
             wait_for(lambda: not controller.state["scanning"])
         assert controller.table.rowCount() == 3

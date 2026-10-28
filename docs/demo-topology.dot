@@ -1,5 +1,5 @@
 digraph inventory {
-  graph [charset="UTF-8", rankdir=TB, compound=true, labelloc=t, label="Inventário · agrupamento lógico\nGateway informado: 192.0.2.1\nFDB: caminho aprendido; vínculo físico direto não confirmado"];
+  graph [charset="UTF-8", rankdir=TB, compound=true, labelloc=t, label="Inventário · agrupamento lógico\nGateway informado: 192.0.2.1\nFDB: caminho aprendido; LLDP/CDP: vizinho reportado; vínculo físico direto não confirmado"];
   node [shape=box, style="rounded", fontname="Arial", fontsize=11];
   edge [style=dashed, color="#557d80", fontname="Arial", fontsize=10, constraint=false];
   subgraph cluster_0 {
@@ -26,6 +26,6 @@ digraph inventory {
     label="Não identificados"; color="#dce3e8";
     "192.0.2.14" [label="Dispositivo ativo\n192.0.2.14\nDispositivo não identificado", tooltip="nome: Dispositivo ativo\nip: 192.0.2.14\nmac: 02:00:00:00:00:14\ntipo: Dispositivo não identificado\nfabricante: MAC local / privado (fabricante indeterminado)\nlatencia: Não medida\norigem: Detecção simulada\nconfianca: Baixa\nevidencia_categoria: Evidências insuficientes para definir categoria\nstatus: Demonstração — dados fictícios\nvisto_em: Não disponível", color="#727b88"];
   }
-  "192.0.2.2" -> "192.0.2.10" [label="FDB · Gi1/0/4", tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/4; vínculo direto não confirmado\nOrigem da observação não registrada · Instante não registrado", kind="fdb_path"];
-  "192.0.2.2" -> "192.0.2.11" [label="FDB · Gi1/0/8", tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/8; vínculo direto não confirmado\nOrigem da observação não registrada · Instante não registrado", kind="fdb_path"];
+  "192.0.2.2" -> "192.0.2.10" [label="FDB · Gi1/0/4", tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/4; vínculo direto não confirmado\nOrigem da observação não registrada · Instante não registrado", kind="fdb_path", neighbor_status=""];
+  "192.0.2.2" -> "192.0.2.11" [label="FDB · Gi1/0/8", tooltip="MAC aprendido em 192.0.2.2 · Gi1/0/8; vínculo direto não confirmado\nOrigem da observação não registrada · Instante não registrado", kind="fdb_path", neighbor_status=""];
 }

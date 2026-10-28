@@ -57,8 +57,8 @@ function layoutTopologyTree(items, availableWidth, {maxColumns = 6} = {}) {
       const row = nodes.slice(start, start + columns);
       const rowColumns = Math.min(nodes.length, columns);
       const rowWidth = rowColumns * cardWidth + (rowColumns - 1) * gap;
-      row.forEach((item, index) => cards.push({...item, x: (width - rowWidth) / 2 + index * (cardWidth + gap),
-        y, width: cardWidth, height: item.switch ? 78 : 62}));
+      row.forEach((item, index) => cards.push(Object.assign({}, item, {x: (width - rowWidth) / 2 + index * (cardWidth + gap),
+        y, width: cardWidth, height: item.switch ? 78 : 62})));
       y += 126;
     }
     y += 28;

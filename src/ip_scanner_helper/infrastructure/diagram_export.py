@@ -22,11 +22,17 @@ def _quote(value):
                   .replace("\r\n", "\n").replace("\r", "\n").replace("\n", "\\n").replace("\t", "    ")) + '"'
 
 
+def _edge_caption(edge):
+    if edge["kind"] == "reported_neighbor":
+        return edge["source"] + " · " + edge["port"] + " → " + edge["remote_port"]
+    return "FDB · " + edge["port"]
+
+
 def render_dot(devices, gateway=None):
     graph = build_topology_graph(devices, gateway)
     nodes = {node["id"]: node for node in graph["nodes"]}
     label = ("Inventário · agrupamento lógico\nGateway informado: " + (graph["gateway"] or "Não informado")
-             + "\nFDB: caminho aprendido; vínculo físico direto não confirmado")
+             + "\nFDB: caminho aprendido; LLDP/CDP: vizinho reportado; vínculo físico direto não confirmado")
     lines = ["digraph inventory {", '  graph [charset="UTF-8", rankdir=TB, compound=true, labelloc=t, label=' + _quote(label) + "];",
              '  node [shape=box, style="rounded", fontname="Arial", fontsize=11];',
              '  edge [style=dashed, color="#557d80", fontname="Arial", fontsize=10, constraint=false];']
@@ -43,9 +49,10 @@ def render_dot(devices, gateway=None):
         lines.append("  " + _quote(ip) + " [label=" + _quote("Observador fora do inventário\n" + ip) + ', style="rounded,dashed"];')
     for edge in graph["edges"]:
         lines.append("  " + _quote(edge["from"]) + " -> " + _quote(edge["to"]) + " [label="
-                     + _quote("FDB · " + edge["port"]) + ", tooltip="
+                     + _quote(_edge_caption(edge)) + ", tooltip="
                      + _quote(edge["label"] + "\n" + edge["source"] + " · " + edge["observed_at"])
-                     + ", kind=" + _quote(edge["kind"]) + "];")
+                     + ", kind=" + _quote(edge["kind"])
+                     + ", neighbor_status=" + _quote(edge.get("neighbor_status", "")) + "];")
     return "\n".join([*lines, "}", ""])
 
 
@@ -81,7 +88,7 @@ def render_drawio(devices, gateway=None):
     graph = build_topology_graph(devices, gateway)
     nodes = {node["id"]: node for node in graph["nodes"]}
     document = ET.Element("mxfile", {"host": "app.diagrams.net", "agent": "IP Scanner Helper", "compressed": "false"})
-    for mode, name in (("category", "Categorias"), ("switch", "Árvore FDB")):
+    for mode, name in (("category", "Categorias"), ("switch", "Caminhos e vizinhos")):
         diagram = ET.SubElement(document, "diagram", {"id": mode, "name": name})
         placements, height = diagram_groups_layout(graph["groupings"][mode], columns=3 if mode == "category" else 2)
         model = ET.SubElement(diagram, "mxGraphModel", {"grid": "1", "gridSize": "10", "tooltips": "1", "fold": "1",
@@ -105,7 +112,7 @@ def render_drawio(devices, gateway=None):
                 observer_id = group_id + "-observer"
                 node = nodes.get(observer)
                 label = (node["nome"] if node else "Observador fora do inventário") + "\n" + observer
-                _vertex(root, observer_id, label, "Observador FDB; vínculo físico direto não confirmado.",
+                _vertex(root, observer_id, label, "Observador de caminhos/vizinhos; vínculo físico direto não confirmado.",
                         "device_reference" if node else "observer_reference", group_id, 16, 54, 608, 64, ip=observer, color="#356a78")
                 observers[observer] = (group_id, observer_id)
                 representations[observer].append(observer_id)
@@ -129,9 +136,11 @@ def render_drawio(devices, gateway=None):
                     representations[edge["from"]].append(identifier)
                     height += 84
                 source, target = representations[edge["from"]][0], representations[edge["to"]][0]
-            metadata = ET.SubElement(root, "object", {"id": "path-" + str(index), "label": _plain("FDB · " + edge["port"]),
+            metadata = ET.SubElement(root, "object", {"id": "path-" + str(index), "label": _plain(_edge_caption(edge)),
                 "tooltip": html.escape(_plain(edge["label"])), "kind": edge["kind"], "source": _plain(edge["source"]),
-                "observed_at": _plain(edge["observed_at"]), "direct_link_confirmed": "false"})
+                "observed_at": _plain(edge["observed_at"]), "direct_link_confirmed": "false",
+                "neighbor_status": edge.get("neighbor_status", ""), "remote_port": _plain(edge.get("remote_port", "")),
+                "expires_at": "unknown"})
             cell = ET.SubElement(metadata, "mxCell", {"edge": "1", "parent": "1", "source": source, "target": target,
                 "style": "edgeStyle=orthogonalEdgeStyle;rounded=1;html=0;dashed=1;strokeColor=#557d80;fontSize=10;endArrow=open;"})
             _geometry(cell, relative=1)
